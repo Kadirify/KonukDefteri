@@ -1,0 +1,85 @@
+/* renkler */
+:root {
+  --renk-ana: #1f3b63;
+  --renk-ana-koyu: #16304f;
+  --renk-ana-acik: #e4ebf5;
+  --renk-vurgu: #d99a2b;
+  --renk-vurgu-koyu: #b8801c;
+
+  --zemin: #f3f4f7;
+  --yuzey: #ffffff;
+  --yuzey-2: #eef0f4;
+  --cizgi: #d9dde5;
+  --cizgi-koyu: #bfc6d1;
+
+  --metin: #1b2430;
+  --metin-soluk: #5f6b7a;
+
+  --kenar-zemin: #1f3b63;
+  --kenar-metin: #ffffff;
+  --kenar-soluk: #aebbd0;
+  --kenar-aktif: #2a4b7a;
+
+  --basari: #2e7d5b;
+  --basari-zemin: #e2f2ea;
+  --uyari: #9a6a0d;
+  --uyari-zemin: #fbefd6;
+  --hata: #b3372f;
+  --hata-zemin: #f9e3e1;
+  --bilgi: #1f3b63;
+  --bilgi-zemin: #e4ebf5;
+
+  --dugme: #1f3b63;
+  --dugme-metin: #ffffff;
+  --dugme-ikincil: #ffffff;
+  --baglanti: #1f3b63;
+  --odak: #d99a2b;
+
+  --yazi: 'Public Sans', 'Segoe UI', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+  --yaricap: 6px;
+  --golge: 0 1px 2px rgba(27, 36, 48, 0.06), 0 1px 3px rgba(27, 36, 48, 0.04);
+  --golge-buyuk: 0 12px 32px rgba(27, 36, 48, 0.18);
+}
+
+[data-tema='koyu'],
+:root:not([data-tema='acik']).sistem-koyu {
+  --renk-ana: #8db4ea;
+  --renk-ana-koyu: #6f9bd6;
+  --renk-ana-acik: #1e3252;
+  --renk-vurgu: #e8b04c;
+  --renk-vurgu-koyu: #f0c266;
+
+  --zemin: #0f1620;
+  --yuzey: #182230;
+  --yuzey-2: #1d2838;
+  --cizgi: #2a3647;
+  --cizgi-koyu: #3b4a5f;
+
+  --metin: #e6eaf0;
+  --metin-soluk: #9aa6b5;
+
+  --kenar-zemin: #15233a;
+  --kenar-metin: #e9eef6;
+  --kenar-soluk: #8f9fb8;
+  --kenar-aktif: #1e3252;
+
+  --basari: #5cc294;
+  --basari-zemin: #173427;
+  --uyari: #e2b25a;
+  --uyari-zemin: #3a2c10;
+  --hata: #ef7c71;
+  --hata-zemin: #43201d;
+  --bilgi: #8db4ea;
+  --bilgi-zemin: #1e3252;
+
+  --dugme: #e8b04c;
+  --dugme-metin: #1a1308;
+  --dugme-ikincil: #182230;
+  --baglanti: #8db4ea;
+  --odak: #e8b04c;
+
+  --golge: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --golge-buyuk: 0 12px 32px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}

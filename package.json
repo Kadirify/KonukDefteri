@@ -1,0 +1,27 @@
+{
+  "name": "konukdefteri",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pansiyon, apart ve günübirlik kiralık evler için konaklayan kimlik bildirimi (KBS) uygulaması",
+  "author": "Kadir",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "kur": "npm install && cd server && npm install && cd ../client && npm install",
+    "dev": "concurrently -n api,web -c blue,green \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "build": "npm --prefix client run build",
+    "start": "npm --prefix server start",
+    "anahtar": "node server/scripts/anahtar-uret.js",
+    "lint": "eslint \"server/src/**/*.js\" \"client/src/**/*.{js,jsx}\"",
+    "test": "npm --prefix server test"
+  },
+  "devDependencies": {
+    "concurrently": "^7.0.0",
+    "eslint": "^8.6.0",
+    "eslint-plugin-react": "^7.28.0",
+    "eslint-plugin-react-hooks": "^4.3.0",
+    "prettier": "^2.5.1"
+  }
+}

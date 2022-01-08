@@ -1,0 +1,47 @@
+{
+  "name": "konukdefteri-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "KonukDefteri API sunucusu ve KBS bildirim kuyruğu",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "migrate": "knex migrate:latest --knexfile knexfile.js",
+    "migrate:geri": "knex migrate:rollback --knexfile knexfile.js",
+    "test": "cross-env NODE_ENV=test jest --runInBand"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.2",
+    "helmet": "^5.0.1",
+    "joi": "^17.5.0",
+    "jsonwebtoken": "^8.5.1",
+    "knex": "^1.0.1",
+    "morgan": "^1.10.0",
+    "sqlite3": "^5.0.2",
+    "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "jest": "^27.4.7",
+    "nodemon": "^2.0.15",
+    "supertest": "^6.2.1"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFiles": [
+      "<rootDir>/tests/ortam.js"
+    ]
+  },
+  "nodemonConfig": {
+    "watch": [
+      "src",
+      "../.env"
+    ],
+    "ext": "js,json,wsdl"
+  }
+}
