@@ -14,3 +14,14 @@ export const tesis = {
   kaydet: (v) => istemci.put('/tesis', v).then(veri),
 };
 
+export const ayarlar = {
+  oku: () => istemci.get('/ayarlar').then(veri),
+  kaydet: (v) => istemci.put('/ayarlar', v).then(veri),
+};
+
+export const kullanicilar = {
+  liste: () => istemci.get('/kullanicilar').then(veri),
+  ekle: (v) => istemci.post('/kullanicilar', v).then(veri),
+  duzenle: (id, v) => istemci.put(`/kullanicilar/${id}`, v).then(veri),
+};
+

@@ -8,6 +8,7 @@ import Logo from './Logo';
 
 const menu = [
   { yol: '/', ad: 'Pano', son: true },
+  { yol: '/ayarlar', ad: 'Ayarlar' },
 ];
 
 export default function Duzen({ children }) {
