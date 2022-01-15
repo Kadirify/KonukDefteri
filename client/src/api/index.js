@@ -14,6 +14,13 @@ export const tesis = {
   kaydet: (v) => istemci.put('/tesis', v).then(veri),
 };
 
+export const konuklar = {
+  liste: (q) => istemci.get('/konuklar', { params: { q: q || '' } }).then(veri),
+  oku: (id) => istemci.get(`/konuklar/${id}`).then(veri),
+  ekle: (v) => istemci.post('/konuklar', v).then(veri),
+  duzenle: (id, v) => istemci.put(`/konuklar/${id}`, v).then(veri),
+};
+
 export const ayarlar = {
   oku: () => istemci.get('/ayarlar').then(veri),
   kaydet: (v) => istemci.put('/ayarlar', v).then(veri),
@@ -25,3 +32,6 @@ export const kullanicilar = {
   duzenle: (id, v) => istemci.put(`/kullanicilar/${id}`, v).then(veri),
 };
 
+export const uyruklar = {
+  liste: () => istemci.get('/uyruklar').then(veri),
+};
