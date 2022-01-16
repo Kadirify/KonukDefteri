@@ -14,6 +14,12 @@ export const tesis = {
   kaydet: (v) => istemci.put('/tesis', v).then(veri),
 };
 
+export const odalar = {
+  liste: () => istemci.get('/odalar').then(veri),
+  ekle: (v) => istemci.post('/odalar', v).then(veri),
+  duzenle: (id, v) => istemci.put(`/odalar/${id}`, v).then(veri),
+};
+
 export const konuklar = {
   liste: (q) => istemci.get('/konuklar', { params: { q: q || '' } }).then(veri),
   oku: (id) => istemci.get(`/konuklar/${id}`).then(veri),

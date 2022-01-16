@@ -33,6 +33,7 @@ app.use('/api/tesis', require('./routes/tesis'));
 app.use('/api/kullanicilar', require('./routes/kullanicilar'));
 app.use('/api/ayarlar', require('./routes/ayarlar'));
 app.use('/api/uyruklar', require('./routes/uyruklar'));
+app.use('/api/odalar', require('./routes/odalar'));
 app.use('/api/konuklar', require('./routes/konuklar'));
 
 app.use('/api', (req, res) => res.status(404).json({ hata: 'Böyle bir adres yok' }));

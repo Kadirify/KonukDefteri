@@ -8,6 +8,7 @@ import Logo from './Logo';
 
 const menu = [
   { yol: '/', ad: 'Pano', son: true },
+  { yol: '/odalar', ad: 'Odalar' },
   { yol: '/konuklar', ad: 'Konuklar' },
   { yol: '/ayarlar', ad: 'Ayarlar' },
 ];
