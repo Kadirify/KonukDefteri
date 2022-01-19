@@ -27,6 +27,18 @@ export const konuklar = {
   duzenle: (id, v) => istemci.put(`/konuklar/${id}`, v).then(veri),
 };
 
+export const konaklamalar = {
+  liste: (params) => istemci.get('/konaklamalar', { params }).then(veri),
+  oku: (id) => istemci.get(`/konaklamalar/${id}`).then(veri),
+  giris: (v) => istemci.post('/konaklamalar', v).then(veri),
+  cikis: (id, v) => istemci.put(`/konaklamalar/${id}/cikis`, v || {}).then(veri),
+  odaDegistir: (id, odaId) => istemci.put(`/konaklamalar/${id}/oda`, { odaId }).then(veri),
+};
+
+export const pano = {
+  oku: () => istemci.get('/pano').then(veri),
+};
+
 export const ayarlar = {
   oku: () => istemci.get('/ayarlar').then(veri),
   kaydet: (v) => istemci.put('/ayarlar', v).then(veri),

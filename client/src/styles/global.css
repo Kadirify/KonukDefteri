@@ -579,6 +579,43 @@ textarea:focus {
   border-bottom-color: var(--renk-vurgu);
 }
 
+/* istatistik kutuları */
+
+.istatistikler {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.istatistik {
+  background: var(--yuzey);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--yaricap);
+  padding: 12px 14px;
+  box-shadow: var(--golge);
+}
+
+.istatistik small {
+  display: block;
+  color: var(--metin-soluk);
+  font-size: 0.78rem;
+  margin-bottom: 4px;
+}
+
+.istatistik b {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.istatistik.dikkat b {
+  color: var(--hata);
+}
+
+.istatistik.bekle b {
+  color: var(--uyari);
+}
+
 /* oda kartları */
 
 .oda-izgara {
