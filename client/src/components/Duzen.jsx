@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import useTema, { TEMA_ETIKET } from '../hooks/useTema';
-import { tesis } from '../api';
+import { kbs, tesis } from '../api';
 import { ROL } from '../utils/metin';
 import Logo from './Logo';
 
@@ -11,6 +11,7 @@ const menu = [
   { yol: '/odalar', ad: 'Odalar' },
   { yol: '/konaklamalar', ad: 'Konaklamalar' },
   { yol: '/konuklar', ad: 'Konuklar' },
+  { yol: '/kbs', ad: 'KBS kuyruğu', sayac: true },
   { yol: '/ayarlar', ad: 'Ayarlar' },
 ];
 
@@ -18,11 +19,30 @@ export default function Duzen({ children }) {
   const { kullanici, cikis } = useAuth();
   const { tema, siradaki } = useTema();
   const [acik, setAcik] = useState(false);
+  const [bekleyen, setBekleyen] = useState(0);
   const [tesisAdi, setTesisAdi] = useState('');
   const konum = useLocation();
 
   useEffect(() => {
     setAcik(false);
+  }, [konum.pathname]);
+
+  useEffect(() => {
+    let durdu = false;
+    const oku = () => {
+      kbs
+        .durum()
+        .then((d) => {
+          if (!durdu) setBekleyen(d.bekleyen + d.hatali);
+        })
+        .catch(() => {});
+    };
+    oku();
+    const z = setInterval(oku, 60000);
+    return () => {
+      durdu = true;
+      clearInterval(z);
+    };
   }, [konum.pathname]);
 
   useEffect(() => {
@@ -55,6 +75,7 @@ export default function Duzen({ children }) {
                 className={({ isActive }) => (isActive ? 'aktif' : '')}
               >
                 <span>{m.ad}</span>
+                {m.sayac && bekleyen > 0 && <span className="sayac">{bekleyen}</span>}
               </NavLink>
             ))}
         </nav>

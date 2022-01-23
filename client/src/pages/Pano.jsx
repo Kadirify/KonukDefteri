@@ -4,6 +4,7 @@ import useYukle from '../hooks/useYukle';
 import Sayfa, { Yukleniyor } from '../components/Sayfa';
 import Uyari from '../components/Uyari';
 import { trTarih } from '../utils/tarih';
+import { KBS_MOD } from '../utils/metin';
 
 export default function Pano() {
   const { veri, yukleniyor, hata } = useYukle(() => pano.oku(), []);
@@ -36,7 +37,7 @@ export default function Pano() {
             </Link>
           }
         >
-          Tesis bilgileri henüz girilmemiş.
+          Tesis bilgileri ve KBS bağlantısı henüz girilmemiş.
         </Uyari>
       )}
       <div className="istatistikler">
@@ -62,7 +63,32 @@ export default function Pano() {
             </span>
           </b>
         </div>
+        <div className={'istatistik' + (p.bekleyen ? ' bekle' : '')}>
+          <small>Bekleyen bildirim</small>
+          <b>{p.bekleyen}</b>
+        </div>
+        <div className={'istatistik' + (p.hatali ? ' dikkat' : '')}>
+          <small>Hatalı bildirim</small>
+          <b>{p.hatali}</b>
+        </div>
       </div>
+
+      {p.hatali > 0 && (
+        <Uyari
+          tur="hata"
+          eylem={
+            <Link to="/kbs" className="dugme dugme-kucuk">
+              Kuyruğa git
+            </Link>
+          }
+        >
+          {p.hatali} bildirim KBS'ye gönderilemedi. Servis açılınca kendiliğinden yeniden denenir.
+        </Uyari>
+      )}
+
+      <p className="soluk" style={{ marginTop: 16 }}>
+        KBS: {KBS_MOD[p.kbsMod] || p.kbsMod} - <Link to="/kbs">kuyruğu aç</Link>
+      </p>
     </Sayfa>
   );
 }

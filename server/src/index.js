@@ -12,6 +12,7 @@ try {
 const db = require('./db/knex');
 const log = require('./log');
 const app = require('./app');
+const kuyruk = require('./services/kbs/kuyruk');
 
 function yerelAdresler() {
   const liste = [];
@@ -26,6 +27,7 @@ function yerelAdresler() {
 async function baslat() {
   await db.migrate.latest();
   await db.seed.run();
+  await kuyruk.baslat();
 
   const sunucu = app.listen(config.port, '0.0.0.0', () => {
     log.info(`KonukDefteri API hazır: http://localhost:${config.port}`);
@@ -37,6 +39,7 @@ async function baslat() {
 
   const kapat = () => {
     log.info('Kapatılıyor');
+    kuyruk.durdur();
     sunucu.close(() => {
       db.destroy().then(() => process.exit(0));
     });

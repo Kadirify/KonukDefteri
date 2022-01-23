@@ -21,7 +21,7 @@ afterAll(async () => {
   await db.destroy();
 });
 
-describe('konaklama akışı', () => {
+describe('konaklama akışı (manuel mod)', () => {
   let odaId;
   let konaklamaId;
 
@@ -60,7 +60,7 @@ describe('konaklama akışı', () => {
     expect(r.body.alanlar.tc).toBeDefined();
   });
 
-  test('giriş kaydı konuk oluşturur ve maskeli TC döner', async () => {
+  test('giriş kaydı konuk ve manuel bildirim üretir', async () => {
     const r = await (
       await istek()
     )
@@ -88,9 +88,10 @@ describe('konaklama akışı', () => {
     expect(r.body[0].tcMaskeli).toBe('*******0146');
     expect(r.body[0].plaka).toBe('34 ABC 123');
     expect(r.body[0].durum).toBe('konakliyor');
-    const konuklar = await db('konuklar');
-    expect(konuklar).toHaveLength(1);
-    expect(konuklar[0].tc_sifreli).not.toBe('10000000146');
+    expect(r.body[0].bildirimler[0].tur).toBe('giris');
+    expect(r.body[0].bildirimler[0].durum).toBe('manuel');
+    const liste = await (await istek()).get('/api/konaklamalar').set('Cookie', cerez);
+    expect(liste.body[0].bildirim.durum).toBe('manuel');
   });
 
   test('aynı konuk ikinci kez içeri alınamaz', async () => {
@@ -118,16 +119,40 @@ describe('konaklama akışı', () => {
     expect(konuklar).toHaveLength(1);
   });
 
-  test('çıkış kaydı durumu ayrildi yapar', async () => {
+  test('bildirim alanlarında TC çözülmüş gelir', async () => {
+    const bildirimler = await db('kbs_bildirimler').where({
+      konaklama_id: konaklamaId,
+    });
+    const r = await (await istek())
+      .get(`/api/kbs/bildirimler/${bildirimler[0].id}/alanlar`)
+      .set('Cookie', cerez);
+    expect(r.status).toBe(200);
+    expect(r.body.konuk.tc).toBe('10000000146');
+    expect(r.body.odaNo).toBe('101');
+  });
+
+  test('manuel tamamlama bildirimi kapatır', async () => {
+    const bildirimler = await db('kbs_bildirimler').where({
+      konaklama_id: konaklamaId,
+    });
+    const r = await (await istek())
+      .post(`/api/kbs/bildirimler/${bildirimler[0].id}/manuel-tamam`)
+      .set('Cookie', cerez)
+      .send({ referans: 'EGM-1' });
+    expect(r.status).toBe(200);
+    expect(r.body.durum).toBe('gonderildi');
+    expect(r.body.yanitRef).toBe('EGM-1');
+  });
+
+  test('çıkış kaydı durumu ayrildi yapar, çıkış bildirimi üretir', async () => {
     const r = await (await istek())
       .put(`/api/konaklamalar/${konaklamaId}/cikis`)
       .set('Cookie', cerez)
       .send({});
     expect(r.status).toBe(200);
     expect(r.body.durum).toBe('ayrildi');
-    expect(r.body.cikisZamani).not.toBe('');
+    expect(r.body.bildirimler.map((b) => b.tur)).toEqual(['giris', 'cikis']);
     const odalar = await (await istek()).get('/api/odalar').set('Cookie', cerez);
     expect(odalar.body[0].durum).toBe('bos');
-    expect(odalar.body[0].konaklayanlar).toHaveLength(0);
   });
 });

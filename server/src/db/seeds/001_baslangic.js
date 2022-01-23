@@ -20,6 +20,7 @@ exports.seed = async function (knex) {
   }
 
   const varsayilan = {
+    kuyruk_dakika: '2',
     saklama_yil: '5',
     tema: 'sistem',
   };

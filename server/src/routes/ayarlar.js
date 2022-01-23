@@ -11,6 +11,7 @@ const router = express.Router();
 // Serbest anahtar/değer değil; bilinen ayarlar dışında bir şey kaydedilmez.
 
 const sema = Joi.object({
+  kuyruk_dakika: Joi.number().integer().min(1).max(60),
   saklama_yil: Joi.number().integer().min(1).max(10),
   tema: Joi.string().valid('sistem', 'acik', 'koyu'),
 });

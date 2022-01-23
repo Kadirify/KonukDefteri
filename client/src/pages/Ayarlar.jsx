@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { auth, ayarlar as ayarApi, kullanicilar as kullaniciApi, tesis as tesisApi } from '../api';
+import {
+  auth,
+  ayarlar as ayarApi,
+  kbs,
+  kullanicilar as kullaniciApi,
+  tesis as tesisApi,
+} from '../api';
 import { hataAlanlari, hataMesaji } from '../api/istemci';
 import { useAuth } from '../hooks/useAuth';
 import useTema, { TEMA_ETIKET } from '../hooks/useTema';
@@ -10,7 +16,7 @@ import Sayfa, { Yukleniyor } from '../components/Sayfa';
 import Uyari from '../components/Uyari';
 import Alan from '../components/Alan';
 import Modal from '../components/Modal';
-import { ROL } from '../utils/metin';
+import { KBS_MOD, ROL } from '../utils/metin';
 import { trTarih } from '../utils/tarih';
 
 function sunucuHatalari(e, setError, setGenel) {
@@ -25,20 +31,32 @@ function TesisAyarlari() {
   const { veri, yukleniyor, hata } = useYukle(() => tesisApi.oku(), []);
   const [mesaj, setMesaj] = useState('');
   const [genelHata, setGenelHata] = useState('');
-  const { register, handleSubmit, reset, setError, formState } = useForm();
+  const [test, setTest] = useState(null);
+  const { register, handleSubmit, reset, watch, setError, formState } = useForm();
+  const kbsMod = watch('kbsMod');
 
   useEffect(() => {
-    if (veri) reset(veri);
+    if (veri) reset({ ...veri, kbsSifre: '' });
   }, [veri, reset]);
 
   const kaydet = async (v) => {
     setMesaj('');
     setGenelHata('');
     try {
-      reset(await tesisApi.kaydet(v));
+      const yeni = await tesisApi.kaydet(v);
+      reset({ ...yeni, kbsSifre: '' });
       setMesaj('Tesis ayarları kaydedildi.');
     } catch (e) {
       sunucuHatalari(e, setError, setGenelHata);
+    }
+  };
+
+  const baglantiTesti = async () => {
+    setTest({ mesaj: 'Deneniyor...' });
+    try {
+      setTest(await kbs.test());
+    } catch (e) {
+      setTest({ tamam: false, mesaj: hataMesaji(e) });
     }
   };
 
@@ -84,6 +102,62 @@ function TesisAyarlari() {
             <Alan etiket="Adres" genis>
               <input type="text" {...register('adres')} />
             </Alan>
+          </div>
+        </div>
+
+        <div className="kart">
+          <div className="kart-baslik">
+            <h2>KBS bağlantısı</h2>
+            <button type="button" className="dugme dugme-kucuk" onClick={baglantiTesti}>
+              Bağlantı testi
+            </button>
+          </div>
+          {test && (
+            <Uyari tur={test.tamam ? 'basari' : test.tamam === false ? 'hata' : 'bilgi'}>
+              {test.mesaj}
+            </Uyari>
+          )}
+          <div className="izgara">
+            <Alan
+              etiket="Bildirim yolu"
+              genis
+              not="Emniyet web servisi için ayrı bir sürücü gerekir; Emniyet bölgesinde şimdilik manuel mod kullanın."
+              hata={errors.kbsMod && errors.kbsMod.message}
+            >
+              <select {...register('kbsMod')}>
+                {Object.keys(KBS_MOD).map((m) => (
+                  <option key={m} value={m}>
+                    {KBS_MOD[m]}
+                  </option>
+                ))}
+              </select>
+            </Alan>
+            {kbsMod === 'jandarma' && (
+              <>
+                <Alan
+                  etiket="Web servis kullanıcısı (TC)"
+                  not="KBS'de web servis yetkisi verilen kullanıcı"
+                  hata={errors.kbsKullanici && errors.kbsKullanici.message}
+                >
+                  <input type="text" className="mono" {...register('kbsKullanici')} />
+                </Alan>
+                <Alan
+                  etiket="Web servis şifresi"
+                  not="Boş bırakılırsa değişmez"
+                  hata={errors.kbsSifre && errors.kbsSifre.message}
+                >
+                  <input type="password" autoComplete="new-password" {...register('kbsSifre')} />
+                </Alan>
+                <Alan
+                  etiket="WSDL adresi"
+                  genis
+                  not="Boş bırakılırsa .env'deki adres kullanılır"
+                  hata={errors.kbsWsdl && errors.kbsWsdl.message}
+                >
+                  <input type="text" className="mono" {...register('kbsWsdl')} />
+                </Alan>
+              </>
+            )}
           </div>
         </div>
         {genelHata && <div className="form-hata">{genelHata}</div>}
@@ -257,15 +331,22 @@ function Genel() {
   const { register, handleSubmit, reset, setError, formState } = useForm();
 
   useEffect(() => {
-    if (veri) reset({ saklama_yil: veri.saklama_yil });
+    if (veri)
+      reset({
+        kuyruk_dakika: veri.kuyruk_dakika,
+        saklama_yil: veri.saklama_yil,
+      });
   }, [veri, reset]);
 
   const kaydet = async (v) => {
     setMesaj('');
     setGenelHata('');
     try {
-      await ayarApi.kaydet({ saklama_yil: Number(v.saklama_yil) });
-      setMesaj('Kaydedildi.');
+      await ayarApi.kaydet({
+        kuyruk_dakika: Number(v.kuyruk_dakika),
+        saklama_yil: Number(v.saklama_yil),
+      });
+      setMesaj('Kaydedildi. Kuyruk aralığı sunucu yeniden başlayınca geçerli olur.');
     } catch (e) {
       sunucuHatalari(e, setError, setGenelHata);
     }
@@ -297,9 +378,15 @@ function Genel() {
         <fieldset disabled={!yonetici} style={{ border: 0, padding: 0, margin: 0 }}>
           <div className="kart">
             <div className="kart-baslik">
-              <h2>Kayıtlar</h2>
+              <h2>Sunucu</h2>
             </div>
             <div className="izgara">
+              <Alan
+                etiket="Kuyruk deneme aralığı (dakika)"
+                hata={errors.kuyruk_dakika && errors.kuyruk_dakika.message}
+              >
+                <input type="number" min={1} max={60} {...register('kuyruk_dakika')} />
+              </Alan>
               <Alan
                 etiket="Kayıt saklama süresi (yıl)"
                 not="Konuk kayıtları bu süre sonunda silinebilir"
@@ -396,7 +483,7 @@ export default function Ayarlar() {
   const { kullanici } = useAuth();
   const yonetici = kullanici.rol === 'yonetici';
   const sekmeler = [
-    ['tesis', 'Tesis'],
+    ['tesis', 'Tesis ve KBS'],
     ...(yonetici ? [['kullanicilar', 'Kullanıcılar']] : []),
     ['genel', 'Genel'],
     ['parola', 'Parola'],

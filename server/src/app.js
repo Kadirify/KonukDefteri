@@ -36,6 +36,7 @@ app.use('/api/uyruklar', require('./routes/uyruklar'));
 app.use('/api/odalar', require('./routes/odalar'));
 app.use('/api/konuklar', require('./routes/konuklar'));
 app.use('/api/konaklamalar', require('./routes/konaklamalar'));
+app.use('/api/kbs', require('./routes/kbs'));
 app.use('/api/pano', require('./routes/pano'));
 
 app.use('/api', (req, res) => res.status(404).json({ hata: 'Böyle bir adres yok' }));

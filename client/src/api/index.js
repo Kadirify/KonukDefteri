@@ -35,6 +35,16 @@ export const konaklamalar = {
   odaDegistir: (id, odaId) => istemci.put(`/konaklamalar/${id}/oda`, { odaId }).then(veri),
 };
 
+export const kbs = {
+  durum: () => istemci.get('/kbs/durum').then(veri),
+  bildirimler: (durum) => istemci.get('/kbs/bildirimler', { params: { durum } }).then(veri),
+  alanlar: (id) => istemci.get(`/kbs/bildirimler/${id}/alanlar`).then(veri),
+  gonder: (id) => istemci.post(`/kbs/bildirimler/${id}/gonder`).then(veri),
+  manuelTamam: (id, referans) =>
+    istemci.post(`/kbs/bildirimler/${id}/manuel-tamam`, { referans }).then(veri),
+  test: () => istemci.post('/kbs/test').then(veri),
+};
+
 export const pano = {
   oku: () => istemci.get('/pano').then(veri),
 };

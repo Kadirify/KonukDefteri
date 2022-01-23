@@ -1,6 +1,9 @@
 const crypto = require('crypto');
 const db = require('../db/knex');
 const konuk = require('./konuk');
+const tesis = require('./tesis');
+const kbs = require('./kbs');
+const kuyruk = require('./kbs/kuyruk');
 const { HttpHata } = require('../middleware/hata');
 const { simdi } = require('../utils/tarih');
 
@@ -46,6 +49,7 @@ async function girisYap(req, b) {
   const uygunluk = await girisUygunMu(odaSatiri, b.konuklar.length);
   if (!uygunluk.uygun) throw new HttpHata(400, uygunluk.neden, { odaId: uygunluk.neden });
 
+  const baglanti = await tesis.kbsBaglantisi();
   const grup = b.konuklar.length > 1 ? grupKodu() : null;
   const olusanlar = [];
 
@@ -68,10 +72,12 @@ async function girisYap(req, b) {
         durum: 'konakliyor',
         olusturan: req.kullanici.id,
       });
+      await kbs.bildirimOlustur(trx, konaklamaId, 'giris', baglanti.mod);
       olusanlar.push(konaklamaId);
     }
   });
 
+  kuyruk.tetikle();
   return olusanlar;
 }
 
@@ -92,13 +98,16 @@ async function cikisYap(req, id, b) {
       durum: 'konakliyor',
     });
   }
+  const baglanti = await tesis.kbsBaglantisi();
   await db.transaction(async (trx) => {
     for (const h of hedefler) {
       await trx('konaklamalar')
         .where({ id: h.id })
         .update({ durum: 'ayrildi', cikis_zamani: cikisZamani });
+      await kbs.bildirimOlustur(trx, h.id, 'cikis', baglanti.mod);
     }
   });
+  kuyruk.tetikle();
 }
 
 async function odaDegistir(req, id, odaId) {
@@ -110,7 +119,12 @@ async function odaDegistir(req, id, odaId) {
   const uygunluk = await girisUygunMu(hedef, 1);
   if (!uygunluk.uygun) throw new HttpHata(400, uygunluk.neden, { odaId: uygunluk.neden });
 
-  await db('konaklamalar').where({ id }).update({ oda_id: odaId });
+  const baglanti = await tesis.kbsBaglantisi();
+  await db.transaction(async (trx) => {
+    await trx('konaklamalar').where({ id }).update({ oda_id: odaId });
+    await kbs.bildirimOlustur(trx, id, 'guncelle', baglanti.mod);
+  });
+  kuyruk.tetikle();
 }
 
 module.exports = { girisYap, cikisYap, odaDegistir };

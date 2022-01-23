@@ -38,7 +38,25 @@ const odaSemasi = Joi.object({
   odaId: Joi.number().integer().required(),
 });
 
-function listeSatiri(s) {
+// Listede her konaklamanın son bildirimi yeter
+async function sonBildirimler(konaklamaIdleri) {
+  if (!konaklamaIdleri.length) return {};
+  const satirlar = await db('kbs_bildirimler')
+    .whereIn('konaklama_id', konaklamaIdleri)
+    .orderBy('id');
+  const harita = {};
+  satirlar.forEach((b) => {
+    harita[b.konaklama_id] = {
+      id: b.id,
+      tur: b.tur,
+      durum: b.durum,
+      sonHata: b.son_hata || '',
+    };
+  });
+  return harita;
+}
+
+function listeSatiri(s, bildirim) {
   return {
     id: s.id,
     konukId: s.konuk_id,
@@ -55,6 +73,7 @@ function listeSatiri(s) {
     cikisZamani: s.cikis_zamani || '',
     plaka: s.plaka || '',
     durum: s.durum,
+    bildirim: bildirim || null,
   };
 }
 
@@ -74,7 +93,21 @@ function temelSorgu() {
 async function detay(id) {
   const s = await temelSorgu().where('konaklamalar.id', id).first();
   if (!s) throw new HttpHata(404, 'Konaklama bulunamadı');
-  return listeSatiri(s);
+  const bildirimler = await db('kbs_bildirimler').where({ konaklama_id: id }).orderBy('id');
+  return {
+    ...listeSatiri(s, null),
+    bildirimler: bildirimler.map((b) => ({
+      id: b.id,
+      tur: b.tur,
+      durum: b.durum,
+      mod: b.mod,
+      deneme: b.deneme,
+      sonHata: b.son_hata || '',
+      gonderimZamani: b.gonderim_zamani || '',
+      yanitRef: b.yanit_ref || '',
+      olusturma: b.olusturma,
+    })),
+  };
 }
 
 router.get(
@@ -92,7 +125,8 @@ router.get(
       });
     }
     const liste = await sorgu;
-    res.json(liste.map((s) => listeSatiri(s)));
+    const harita = await sonBildirimler(liste.map((s) => s.id));
+    res.json(liste.map((s) => listeSatiri(s, harita[s.id])));
   })
 );
 

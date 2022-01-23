@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { konaklamalar, konuklar as konukApi, odalar as odaApi } from '../api';
+import { kbs, konaklamalar, konuklar as konukApi, odalar as odaApi } from '../api';
 import { hataMesaji } from '../api/istemci';
 import useYukle from '../hooks/useYukle';
 import Sayfa, { BosDurum, Yukleniyor } from '../components/Sayfa';
 import Uyari from '../components/Uyari';
 import Modal from '../components/Modal';
 import Alan from '../components/Alan';
+import { BildirimRozeti } from '../components/Rozet';
+import BildirimIslemleri from '../components/BildirimIslemleri';
 import KonukFormu from '../components/KonukFormu';
 import { girisDegerinden, girisDegerine, simdiYerel, trTarih } from '../utils/tarih';
-import { kimlikMetni, konukAdi } from '../utils/metin';
+import { BILDIRIM_TUR, kimlikMetni, konukAdi } from '../utils/metin';
 
 export function odaEtiketi(o) {
   const dolu = o.konaklayanlar.length;
@@ -268,7 +270,8 @@ export function OdaDegistirModal({ konaklama, odalar, onKapat, onTamam }) {
   return (
     <Modal baslik="Oda değiştir" onKapat={onKapat}>
       <p>
-        <b>{konukAdi(konaklama)}</b> şu an {konaklama.odaNo} numaralı odada.
+        <b>{konukAdi(konaklama)}</b> şu an {konaklama.odaNo} numaralı odada. Değişiklik KBS'ye
+        güncelleme olarak bildirilir.
       </p>
       <Alan etiket="Yeni oda">
         <select value={odaId} onChange={(e) => setOdaId(e.target.value)}>
@@ -307,6 +310,8 @@ export default function Konaklamalar() {
 
   const liste = useYukle(() => konaklamalar.liste({ durum, q }), [durum, q]);
   const odalar = useYukle(() => odaApi.liste(), [liste.veri]);
+  const kbsDurum = useYukle(() => kbs.durum(), []);
+  const kbsMod = kbsDurum.veri ? kbsDurum.veri.mod : 'manuel';
 
   useEffect(() => {
     if (arama.get('yeni') === '1') {
@@ -387,6 +392,7 @@ export default function Konaklamalar() {
                 <th>Kimlik</th>
                 <th>Giriş</th>
                 <th>Çıkış</th>
+                <th>Bildirim</th>
                 <th />
               </tr>
             </thead>
@@ -406,6 +412,25 @@ export default function Konaklamalar() {
                   <td className="sayi">{trTarih(s.girisZamani)}</td>
                   <td className="sayi">
                     {s.cikisZamani ? trTarih(s.cikisZamani) : <span className="soluk">-</span>}
+                  </td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    {s.bildirim ? (
+                      <>
+                        <BildirimRozeti durum={s.bildirim.durum} />{' '}
+                        <span className="soluk" style={{ fontSize: '0.8rem' }}>
+                          {BILDIRIM_TUR[s.bildirim.tur]}
+                        </span>
+                        <div style={{ marginTop: 4 }}>
+                          <BildirimIslemleri
+                            bildirim={s.bildirim}
+                            kbsMod={kbsMod}
+                            onGuncelle={() => liste.yenile()}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <span className="soluk">-</span>
+                    )}
                   </td>
                   <td className="eylem" onClick={(e) => e.stopPropagation()}>
                     {s.durum === 'konakliyor' ? (
@@ -447,14 +472,16 @@ export default function Konaklamalar() {
         <GirisModal
           odalar={odalar.veri}
           onKapat={() => setGirisAcik(false)}
-          onTamam={(sonuc) => tamam(`${sonuc.length} konuk için giriş kaydedildi.`)}
+          onTamam={(sonuc) =>
+            tamam(`${sonuc.length} konuk için giriş kaydedildi, KBS bildirimi kuyruğa alındı.`)
+          }
         />
       )}
       {cikis && (
         <CikisModal
           konaklama={cikis}
           onKapat={() => setCikis(null)}
-          onTamam={() => tamam('Çıkış kaydedildi.')}
+          onTamam={() => tamam('Çıkış kaydedildi, KBS bildirimi kuyruğa alındı.')}
         />
       )}
       {tasi && odalar.veri && (
