@@ -14,6 +14,7 @@
     "build": "npm --prefix client run build",
     "start": "npm --prefix server start",
     "anahtar": "node server/scripts/anahtar-uret.js",
+    "mock:kbs": "node server/mock/kbs-sunucu.js",
     "lint": "eslint \"server/src/**/*.js\" \"client/src/**/*.{js,jsx}\"",
     "test": "npm --prefix server test"
   },

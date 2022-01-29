@@ -11,6 +11,7 @@ const config = {
   sifreAnahtari: process.env.SIFRE_ANAHTARI || '',
   veriKlasoru: process.env.VERI_KLASORU || path.join(__dirname, '..', 'data'),
   yoneticiParola: process.env.YONETICI_PAROLA || 'konuk2022',
+  kbsJandarmaWsdl: process.env.KBS_JANDARMA_WSDL || '',
   tokenSuresi: '8h',
 };
 

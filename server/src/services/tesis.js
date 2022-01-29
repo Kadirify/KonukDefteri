@@ -16,7 +16,7 @@ async function kbsBaglantisi() {
     mod: t.kbs_mod || 'manuel',
     kullanici: t.kbs_kullanici || '',
     sifre: t.kbs_sifre ? coz(t.kbs_sifre) : '',
-    wsdl: t.kbs_wsdl,
+    wsdl: t.kbs_wsdl || config.kbsJandarmaWsdl,
   };
 }
 
