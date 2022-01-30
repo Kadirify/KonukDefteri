@@ -7,7 +7,7 @@ const { bildirimAlanlari } = require('./alanlar');
 const { simdi } = require('../../utils/tarih');
 
 // TODO: sınıra takılan bildirim için mail ya da sms uyarısı yok, elle tetiklemek gerekiyor
-const EN_FAZLA_DENEME = 3;
+const EN_FAZLA_DENEME = 5;
 let gorev = null;
 let calisiyor = false;
 
@@ -37,7 +37,7 @@ async function birGonder(b, baglanti) {
         deneme: b.deneme + 1,
         son_hata: String(e.message || e).slice(0, 500),
       });
-    log.warn(`KBS bildirim #${b.id} gönderilemedi: ${e.message}`);
+    log.warn(`KBS bildirim #${b.id} gönderilemedi (${b.deneme + 1}. deneme): ${e.message}`);
     return false;
   }
 }
@@ -80,7 +80,7 @@ async function baslat() {
   gorev = cron.schedule(`*/${dakika} * * * *`, () => {
     isle().catch((e) => log.warn('Kuyruk: ' + e.message));
   });
-  log.info('KBS kuyruğu başladı');
+  log.info(`KBS kuyruğu ${dakika} dakikada bir çalışacak`);
 }
 
 function durdur() {
