@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
+const rateLimit = require('express-rate-limit');
 const db = require('../db/knex');
 const { config } = require('../config');
 const { oturum } = require('../middleware/auth');
@@ -11,6 +12,14 @@ const { sar } = require('../utils/async');
 const { simdi } = require('../utils/tarih');
 
 const router = express.Router();
+
+const girisLimiti = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { hata: 'Çok fazla hatalı deneme. 10 dakika sonra tekrar deneyin.' },
+});
 
 const girisSemasi = Joi.object({
   kullaniciAdi: Joi.string().trim().lowercase().min(3).max(40).required(),
@@ -45,6 +54,7 @@ function dto(k) {
 
 router.post(
   '/giris',
+  girisLimiti,
   dogrula(girisSemasi),
   sar(async (req, res) => {
     const { kullaniciAdi, parola } = req.body;
