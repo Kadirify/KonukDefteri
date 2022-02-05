@@ -12,6 +12,7 @@ const menu = [
   { yol: '/konaklamalar', ad: 'Konaklamalar' },
   { yol: '/konuklar', ad: 'Konuklar' },
   { yol: '/kbs', ad: 'KBS kuyruğu', sayac: true },
+  { yol: '/raporlar', ad: 'Raporlar' },
   { yol: '/ayarlar', ad: 'Ayarlar' },
 ];
 

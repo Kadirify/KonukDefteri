@@ -49,6 +49,12 @@ export const pano = {
   oku: () => istemci.get('/pano').then(veri),
 };
 
+export const raporlar = {
+  gunluk: (tarih, tam) =>
+    istemci.get('/raporlar/gunluk', { params: { tarih, tam: tam ? '1' : '0' } }).then(veri),
+  aylik: (ay) => istemci.get('/raporlar/aylik', { params: { ay } }).then(veri),
+};
+
 export const ayarlar = {
   oku: () => istemci.get('/ayarlar').then(veri),
   kaydet: (v) => istemci.put('/ayarlar', v).then(veri),

@@ -1,0 +1,72 @@
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 11pt;
+  }
+
+  .kenar,
+  .ust-cubuk,
+  .yazdirma-gizle,
+  .sayfa-baslik .eylemler,
+  .uyari {
+    display: none !important;
+  }
+
+  .uygulama {
+    display: block;
+  }
+
+  .icerik {
+    padding: 0;
+  }
+
+  .kart,
+  .tablo-sarici {
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .tablo th,
+  .tablo td {
+    border-bottom: 1px solid #999;
+    padding: 4px 6px;
+    color: #000;
+  }
+
+  .tablo th {
+    background: #eee;
+  }
+
+  .yazdir-baslik {
+    display: block !important;
+    margin-bottom: 12px;
+  }
+
+  .imza-alani {
+    display: flex !important;
+    justify-content: space-between;
+    margin-top: 40px;
+  }
+
+  .imza-alani div {
+    width: 40%;
+    border-top: 1px solid #000;
+    padding-top: 6px;
+    text-align: center;
+  }
+
+  a {
+    text-decoration: none;
+    color: #000;
+  }
+}
+
+.yazdir-baslik {
+  display: none;
+}
+
+.imza-alani {
+  display: none;
+}
