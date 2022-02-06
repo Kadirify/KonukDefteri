@@ -8,7 +8,7 @@ const { bildirimAlanlari } = require('../services/kbs/alanlar');
 const { dogrula } = require('../middleware/dogrula');
 const { HttpHata } = require('../middleware/hata');
 const { sar } = require('../utils/async');
-const { simdi } = require('../utils/tarih');
+const { simdi, gecerliZaman } = require('../utils/tarih');
 const konukServis = require('../services/konuk');
 
 const router = express.Router();
@@ -161,6 +161,107 @@ router.post(
     } catch (e) {
       res.json({ tamam: false, mesaj: e.message });
     }
+  })
+);
+
+// Kesinti tutanakları
+const zaman = Joi.string().custom((v, h) => (gecerliZaman(v) ? v : h.error('any.invalid')));
+const kesintiSemasi = Joi.object({
+  baslangic: zaman.required(),
+  bitis: zaman.required(),
+  neden: Joi.string().trim().max(300).allow(''),
+});
+
+function kesintiDto(k) {
+  return {
+    id: k.id,
+    tutanakNo: k.tutanak_no,
+    baslangic: k.baslangic,
+    bitis: k.bitis,
+    neden: k.neden || '',
+    olusturma: k.olusturma,
+    olusturanAd: k.olusturan_ad || '',
+  };
+}
+
+router.get(
+  '/kesintiler',
+  sar(async (req, res) => {
+    const liste = await db('kesintiler')
+      .leftJoin('kullanicilar', 'kullanicilar.id', 'kesintiler.olusturan')
+      .select('kesintiler.*', 'kullanicilar.ad_soyad as olusturan_ad')
+      .orderBy('kesintiler.id', 'desc');
+    res.json(liste.map(kesintiDto));
+  })
+);
+
+router.post(
+  '/kesintiler',
+  dogrula(kesintiSemasi),
+  sar(async (req, res) => {
+    const b = req.body;
+    if (b.bitis < b.baslangic)
+      throw new HttpHata(400, 'Bitiş başlangıçtan önce olamaz', { bitis: 'Başlangıçtan önce' });
+    const yil = b.baslangic.slice(0, 4);
+    const sayi = await db('kesintiler')
+      .where('tutanak_no', 'like', `KT-${yil}-%`)
+      .count('id as n')
+      .first();
+    const tutanakNo = `KT-${yil}-${String(Number(sayi.n) + 1).padStart(3, '0')}`;
+    const [id] = await db('kesintiler').insert({
+      tutanak_no: tutanakNo,
+      baslangic: b.baslangic,
+      bitis: b.bitis,
+      neden: b.neden || '',
+      olusturan: req.kullanici.id,
+    });
+    const k = await db('kesintiler')
+      .leftJoin('kullanicilar', 'kullanicilar.id', 'kesintiler.olusturan')
+      .select('kesintiler.*', 'kullanicilar.ad_soyad as olusturan_ad')
+      .where('kesintiler.id', id)
+      .first();
+    res.status(201).json(kesintiDto(k));
+  })
+);
+
+router.get(
+  '/kesintiler/:id',
+  sar(async (req, res) => {
+    const id = Number(req.params.id);
+    const k = await db('kesintiler')
+      .leftJoin('kullanicilar', 'kullanicilar.id', 'kesintiler.olusturan')
+      .select('kesintiler.*', 'kullanicilar.ad_soyad as olusturan_ad')
+      .where('kesintiler.id', id)
+      .first();
+    if (!k) throw new HttpHata(404, 'Tutanak bulunamadı');
+    // Kesinti aralığında olup zamanında gönderilemeyen bildirimler
+    const liste = await bildirimSorgusu()
+      .where((w) => {
+        w.whereBetween('konaklamalar.giris_zamani', [k.baslangic, k.bitis]).orWhereBetween(
+          'konaklamalar.cikis_zamani',
+          [k.baslangic, k.bitis]
+        );
+      })
+      .where((w) => {
+        w.whereNot('kbs_bildirimler.durum', 'gonderildi').orWhere(
+          'kbs_bildirimler.gonderim_zamani',
+          '>',
+          k.bitis
+        );
+      })
+      .orderBy('kbs_bildirimler.id');
+    const t = await tesis.oku();
+    res.json({
+      ...kesintiDto(k),
+      tesis: {
+        ad: t.ad || '',
+        tesisKodu: t.tesis_kodu || '',
+        bolge: t.bolge || '',
+        il: t.il || '',
+        ilce: t.ilce || '',
+      },
+      bildirimler: liste.map(bildirimDto),
+    });
   })
 );
 

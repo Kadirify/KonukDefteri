@@ -1,21 +1,88 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { kbs } from '../api';
-import { hataMesaji } from '../api/istemci';
+import { hataAlanlari, hataMesaji } from '../api/istemci';
 import useYukle from '../hooks/useYukle';
 import Sayfa, { BosDurum, Yukleniyor } from '../components/Sayfa';
 import Uyari from '../components/Uyari';
+import Modal from '../components/Modal';
+import Alan from '../components/Alan';
 import { BildirimRozeti } from '../components/Rozet';
 import BildirimIslemleri from '../components/BildirimIslemleri';
-import { trTarih } from '../utils/tarih';
+import { girisDegerinden, girisDegerine, simdiYerel, trTarih } from '../utils/tarih';
 import { BILDIRIM_TUR, KBS_MOD, kimlikMetni, konukAdi } from '../utils/metin';
+
+function KesintiFormu({ onKapat, onTamam }) {
+  const [baslangic, setBaslangic] = useState(girisDegerine(simdiYerel().slice(0, 10) + ' 09:00'));
+  const [bitis, setBitis] = useState(girisDegerine(simdiYerel()));
+  const [neden, setNeden] = useState('');
+  const [hata, setHata] = useState('');
+  const [alanHata, setAlanHata] = useState({});
+  const [mesgul, setMesgul] = useState(false);
+
+  const kaydet = async () => {
+    setMesgul(true);
+    setHata('');
+    setAlanHata({});
+    try {
+      onTamam(
+        await kbs.kesintiEkle({
+          baslangic: girisDegerinden(baslangic),
+          bitis: girisDegerinden(bitis),
+          neden,
+        })
+      );
+    } catch (e) {
+      setAlanHata(hataAlanlari(e));
+      setHata(hataMesaji(e));
+    } finally {
+      setMesgul(false);
+    }
+  };
+
+  return (
+    <Modal baslik="Kesinti tutanağı" onKapat={onKapat}>
+      <p className="soluk">Yazdırıp saklayın, denetimde isterler.</p>
+      <div className="izgara">
+        <Alan etiket="Kesinti başlangıcı" hata={alanHata.baslangic}>
+          <input
+            type="datetime-local"
+            value={baslangic}
+            onChange={(e) => setBaslangic(e.target.value)}
+          />
+        </Alan>
+        <Alan etiket="Kesinti bitişi" hata={alanHata.bitis}>
+          <input type="datetime-local" value={bitis} onChange={(e) => setBitis(e.target.value)} />
+        </Alan>
+        <Alan etiket="Neden / yapılanlar" genis hata={alanHata.neden}>
+          <textarea
+            value={neden}
+            onChange={(e) => setNeden(e.target.value)}
+            placeholder="KBS sayfası açılmadı"
+          />
+        </Alan>
+      </div>
+      {hata && <div className="form-hata">{hata}</div>}
+      <div className="form-alt">
+        <button type="button" className="dugme" onClick={onKapat}>
+          Vazgeç
+        </button>
+        <button type="button" className="dugme dugme-birincil" onClick={kaydet} disabled={mesgul}>
+          Tutanağı oluştur
+        </button>
+      </div>
+    </Modal>
+  );
+}
 
 export default function KbsKuyrugu() {
   const [sekme, setSekme] = useState('bekleyen');
+  const [kesintiAcik, setKesintiAcik] = useState(false);
   const [testSonuc, setTestSonuc] = useState(null);
   const [testMesgul, setTestMesgul] = useState(false);
   const durum = useYukle(() => kbs.durum(), [sekme]);
   const liste = useYukle(() => kbs.bildirimler(sekme), [sekme]);
+  const kesintiler = useYukle(() => kbs.kesintiler(), []);
 
   const guncelle = (b) => {
     liste.setVeri((l) => (l || []).map((x) => (x.id === b.id ? b : x)));
@@ -40,9 +107,18 @@ export default function KbsKuyrugu() {
     <Sayfa
       baslik="KBS kuyruğu"
       eylemler={
-        <button type="button" className="dugme" onClick={test} disabled={testMesgul}>
-          {testMesgul ? 'Deneniyor...' : 'Bağlantı testi'}
-        </button>
+        <>
+          <button type="button" className="dugme" onClick={test} disabled={testMesgul}>
+            {testMesgul ? 'Deneniyor...' : 'Bağlantı testi'}
+          </button>
+          <button
+            type="button"
+            className="dugme dugme-birincil"
+            onClick={() => setKesintiAcik(true)}
+          >
+            Kesinti tutanağı
+          </button>
+        </>
       }
     >
       {testSonuc && (
@@ -151,11 +227,7 @@ export default function KbsKuyrugu() {
                     {b.durum === 'hata' && b.sonHata && (
                       <div
                         className="soluk"
-                        style={{
-                          fontSize: '0.78rem',
-                          marginTop: 2,
-                          maxWidth: 280,
-                        }}
+                        style={{ fontSize: '0.78rem', marginTop: 2, maxWidth: 280 }}
                       >
                         {b.sonHata}
                       </div>
@@ -188,6 +260,34 @@ export default function KbsKuyrugu() {
           </table>
           {liste.veri && liste.veri.length === 0 && <BosDurum>Bu sekmede bildirim yok.</BosDurum>}
         </div>
+      )}
+
+      <div className="kart" style={{ marginTop: 20 }}>
+        <div className="kart-baslik">
+          <h2>Kesinti tutanakları</h2>
+        </div>
+        {kesintiler.veri && kesintiler.veri.length === 0 && <p className="soluk">Tutanak yok.</p>}
+        {(kesintiler.veri || []).map((k) => (
+          <div className="liste-satir" key={k.id}>
+            <span>
+              <b className="mono">{k.tutanakNo}</b> - {trTarih(k.baslangic)} - {trTarih(k.bitis)}
+              {k.neden && <span className="soluk"> - {k.neden}</span>}
+            </span>
+            <Link to={`/kbs/kesintiler/${k.id}`} className="dugme dugme-kucuk">
+              Tutanak
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      {kesintiAcik && (
+        <KesintiFormu
+          onKapat={() => setKesintiAcik(false)}
+          onTamam={() => {
+            setKesintiAcik(false);
+            kesintiler.yenile();
+          }}
+        />
       )}
     </Sayfa>
   );

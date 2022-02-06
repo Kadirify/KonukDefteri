@@ -8,6 +8,7 @@ import Odalar from './pages/Odalar';
 import Konuklar from './pages/Konuklar';
 import KonukDetay from './pages/KonukDetay';
 import KbsKuyrugu from './pages/KbsKuyrugu';
+import KesintiTutanagi from './pages/KesintiTutanagi';
 import Raporlar from './pages/Raporlar';
 import Ayarlar from './pages/Ayarlar';
 
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="konuklar" element={<Konuklar />} />
         <Route path="konuklar/:id" element={<KonukDetay />} />
         <Route path="kbs" element={<KbsKuyrugu />} />
+        <Route path="kbs/kesintiler/:id" element={<KesintiTutanagi />} />
         <Route path="raporlar" element={<Raporlar />} />
         <Route path="ayarlar/*" element={<Ayarlar />} />
         <Route path="*" element={<Navigate to="/" replace />} />

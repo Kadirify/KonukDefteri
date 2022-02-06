@@ -43,6 +43,9 @@ export const kbs = {
   manuelTamam: (id, referans) =>
     istemci.post(`/kbs/bildirimler/${id}/manuel-tamam`, { referans }).then(veri),
   test: () => istemci.post('/kbs/test').then(veri),
+  kesintiler: () => istemci.get('/kbs/kesintiler').then(veri),
+  kesintiEkle: (v) => istemci.post('/kbs/kesintiler', v).then(veri),
+  kesinti: (id) => istemci.get(`/kbs/kesintiler/${id}`).then(veri),
 };
 
 export const pano = {
