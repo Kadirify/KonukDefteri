@@ -36,7 +36,7 @@ npm run build
 npm start
 ```
 
-Tarayıcıdan `http://localhost:3001` açılır. Aynı ağdaki cihazlar için sunucu açılışta kendi adresini yazar . Bilgisayar her açıldığında kendiliğinden başlasın isterseniz Görev Zamanlayıcı ve NSSM ile servis olarak çalıştırma [docs/kurulum.md](docs/kurulum.md) içinde.
+Tarayıcıdan `http://localhost:3001` açılır. Aynı ağdaki cihazlar için sunucu açılışta kendi adresini yazar (`http://192.168.1.20:3001` gibi); sunucu bilgisayara sabit yerel IP verin, yoksa adres değişince tablet bağlanamaz.  Bilgisayar her açıldığında kendiliğinden başlasın isterseniz Görev Zamanlayıcı ve NSSM ile servis olarak çalıştırma [docs/kurulum.md](docs/kurulum.md) içinde.
 
 İlk kullanıcı `yonetici`, parolası `.env` içindeki `YONETICI_PAROLA`. İlk girişte parolayı değiştirmeniz istenir. Ayarlar > Tesis ve KBS'den tesis adı, karakolun verdiği 6 haneli tesis kodu ve bağlı olunan birim girilir; Ayarlar > Kullanıcılar'dan resepsiyon için ayrı kullanıcı açın.
 
