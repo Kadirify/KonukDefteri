@@ -24,7 +24,12 @@ nssm start KonukDefteri
 
 ## Yerel ağdan erişim
 
-Sunucu `0.0.0.0` üzerinde dinler. Tablet ya da ikinci bilgisayar `http://<sunucu-ip>:3001` adresine girer.
+Sunucu `0.0.0.0` üzerinde dinler. Tablet ya da ikinci bilgisayar `http://<sunucu-ip>:3001` adresine girer. Windows Güvenlik Duvarı ilk açılışta sorar; sormazsa 3001 portuna gelen bağlantıya izin verin:
+
+```
+netsh advfirewall firewall add rule name="KonukDefteri" dir=in action=allow protocol=TCP localport=3001
+```
+
 Sunucu bilgisayara sabit yerel IP verin (modem arayüzünden DHCP rezervasyonu), yoksa adres değişince tablet bağlanamaz.
 
 ## Jandarma web servisi için sabit IP
