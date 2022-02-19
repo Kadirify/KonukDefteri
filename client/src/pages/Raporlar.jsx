@@ -21,7 +21,7 @@ function GunlukListe() {
         {kullanici.rol === 'yonetici' && (
           <label className="secenekler">
             <input type="checkbox" checked={tam} onChange={(e) => setTam(e.target.checked)} />
-            <span>TC numaralarını tam göster</span>
+            <span>TC numaralarını tam göster (günlüğe yazılır)</span>
           </label>
         )}
         <button

@@ -5,6 +5,7 @@ const { yetki } = require('../middleware/auth');
 const { dogrula } = require('../middleware/dogrula');
 const { HttpHata } = require('../middleware/hata');
 const { sar } = require('../utils/async');
+const gunluk = require('../services/gunluk');
 
 const router = express.Router();
 
@@ -106,6 +107,7 @@ router.post(
         odaNo: 'Kullanılıyor',
       });
     const [id] = await db('odalar').insert(odaKaydet(b));
+    gunluk.kaydet(req, 'oda_ekle', 'oda:' + id, { odaNo: b.odaNo });
     res.status(201).json(await oku(id));
   })
 );
@@ -129,6 +131,7 @@ router.put(
       if (dolu) throw new HttpHata(400, 'İçinde konuk varken oda kapatılamaz');
     }
     await db('odalar').where({ id }).update(odaKaydet(b));
+    gunluk.kaydet(req, 'oda_duzenle', 'oda:' + id, { odaNo: b.odaNo });
     res.json(await oku(id));
   })
 );

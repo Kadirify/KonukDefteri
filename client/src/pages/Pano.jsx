@@ -4,7 +4,7 @@ import useYukle from '../hooks/useYukle';
 import Sayfa, { Yukleniyor } from '../components/Sayfa';
 import Uyari from '../components/Uyari';
 import { trTarih } from '../utils/tarih';
-import { KBS_MOD } from '../utils/metin';
+import { islemMetni, KBS_MOD } from '../utils/metin';
 
 export default function Pano() {
   const { veri, yukleniyor, hata } = useYukle(() => pano.oku(), []);
@@ -86,9 +86,25 @@ export default function Pano() {
         </Uyari>
       )}
 
-      <p className="soluk" style={{ marginTop: 16 }}>
-        KBS: {KBS_MOD[p.kbsMod] || p.kbsMod} - <Link to="/kbs">kuyruğu aç</Link>
-      </p>
+      <div className="kart">
+        <div className="kart-baslik">
+          <h2>Son işlemler</h2>
+          <span className="soluk">KBS: {KBS_MOD[p.kbsMod] || p.kbsMod}</span>
+        </div>
+        {p.sonIslemler.length === 0 ? (
+          <p className="soluk">Kayıt yok.</p>
+        ) : (
+          p.sonIslemler.map((i) => (
+            <div className="liste-satir" key={i.id}>
+              <span>
+                <b>{i.kullanici}</b> {islemMetni(i.islem).toLowerCase()}
+                {i.hedef && <span className="soluk mono"> - {i.hedef}</span>}
+              </span>
+              <span className="soluk sayi">{trTarih(i.zaman)}</span>
+            </div>
+          ))
+        )}
+      </div>
     </Sayfa>
   );
 }

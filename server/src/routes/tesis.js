@@ -6,6 +6,7 @@ const { dogrula } = require('../middleware/dogrula');
 const { sar } = require('../utils/async');
 const { simdi } = require('../utils/tarih');
 const { sifrele } = require('../services/kripto');
+const gunluk = require('../services/gunluk');
 
 const router = express.Router();
 
@@ -79,6 +80,7 @@ router.put(
     } else {
       await db('tesis').insert(veri);
     }
+    gunluk.kaydet(req, 'tesis_guncelle', 'tesis', { kbsMod: b.kbsMod, bolge: b.bolge });
     const t = await db('tesis').first();
     res.json(dto(t));
   })

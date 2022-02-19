@@ -6,6 +6,7 @@ const { yetki } = require('../middleware/auth');
 const { dogrula } = require('../middleware/dogrula');
 const { HttpHata } = require('../middleware/hata');
 const { sar } = require('../utils/async');
+const gunluk = require('../services/gunluk');
 
 const router = express.Router();
 router.use(yetki('yonetici'));
@@ -62,6 +63,7 @@ router.post(
       rol: b.rol,
       ilk_parola: true,
     });
+    gunluk.kaydet(req, 'kullanici_ekle', 'kullanici:' + id, { rol: b.rol });
     const k = await db('kullanicilar').where({ id }).first();
     res.status(201).json(dto(k));
   })
@@ -84,6 +86,7 @@ router.put(
       veri.ilk_parola = true;
     }
     await db('kullanicilar').where({ id }).update(veri);
+    gunluk.kaydet(req, 'kullanici_duzenle', 'kullanici:' + id, { rol: b.rol, aktif: b.aktif });
     res.json(dto(await db('kullanicilar').where({ id }).first()));
   })
 );

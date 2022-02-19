@@ -9,6 +9,7 @@ const { dogrula } = require('../middleware/dogrula');
 const { HttpHata } = require('../middleware/hata');
 const { sar } = require('../utils/async');
 const { simdi, gecerliZaman } = require('../utils/tarih');
+const gunluk = require('../services/gunluk');
 const konukServis = require('../services/konuk');
 
 const router = express.Router();
@@ -101,6 +102,7 @@ router.get(
   sar(async (req, res) => {
     const id = Number(req.params.id);
     const alanlar = await bildirimAlanlari(id);
+    gunluk.kaydet(req, 'tc_goruntule', 'bildirim:' + id);
     res.json(alanlar);
   })
 );
@@ -119,6 +121,7 @@ router.post(
       throw new HttpHata(400, e.message);
     }
     if (sonuc.atlandi) throw new HttpHata(409, 'Kuyruk şu anda çalışıyor, birazdan tekrar deneyin');
+    gunluk.kaydet(req, 'bildirim_tekrar', 'bildirim:' + id);
     const guncel = await bildirimSorgusu().where('kbs_bildirimler.id', id).first();
     res.json(bildirimDto(guncel));
   })
@@ -145,6 +148,7 @@ router.post(
         yanit_ref: req.body.referans || '',
         son_hata: null,
       });
+    gunluk.kaydet(req, 'bildirim_manuel', 'bildirim:' + id, { referans: req.body.referans || '' });
     const guncel = await bildirimSorgusu().where('kbs_bildirimler.id', id).first();
     res.json(bildirimDto(guncel));
   })
@@ -157,6 +161,7 @@ router.post(
     const s = kbs.surucu(baglanti.mod);
     try {
       const sonuc = await s.test(baglanti);
+      gunluk.kaydet(req, 'kbs_test', 'tesis', { tamam: sonuc.tamam });
       res.json(sonuc);
     } catch (e) {
       res.json({ tamam: false, mesaj: e.message });
@@ -215,6 +220,7 @@ router.post(
       neden: b.neden || '',
       olusturan: req.kullanici.id,
     });
+    gunluk.kaydet(req, 'kesinti_tutanagi', 'kesinti:' + id, { tutanakNo });
     const k = await db('kesintiler')
       .leftJoin('kullanicilar', 'kullanicilar.id', 'kesintiler.olusturan')
       .select('kesintiler.*', 'kullanicilar.ad_soyad as olusturan_ad')

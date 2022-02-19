@@ -6,6 +6,7 @@ const { coz } = require('../services/kripto');
 const { HttpHata } = require('../middleware/hata');
 const { sar } = require('../utils/async');
 const { bugun } = require('../utils/tarih');
+const gunluk = require('../services/gunluk');
 
 const router = express.Router();
 
@@ -31,6 +32,7 @@ router.get(
       })
       .select('konaklamalar.*', 'konuklar.*', 'odalar.oda_no', 'konaklamalar.id as id')
       .orderBy('odalar.oda_no');
+    if (tam) gunluk.kaydet(req, 'gunluk_liste_tam', 'rapor:' + tarih);
     const t = await tesis.oku();
     res.json({
       tarih,

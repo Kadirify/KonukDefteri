@@ -4,6 +4,7 @@ const db = require('../db/knex');
 const { yetki } = require('../middleware/auth');
 const { dogrula } = require('../middleware/dogrula');
 const { sar } = require('../utils/async');
+const gunluk = require('../services/gunluk');
 const tesis = require('../services/tesis');
 
 const router = express.Router();
@@ -34,6 +35,7 @@ router.put(
       if (mevcut) await db('ayarlar').where({ anahtar }).update({ deger });
       else await db('ayarlar').insert({ anahtar, deger });
     }
+    gunluk.kaydet(req, 'ayar_guncelle', 'ayarlar', req.body);
     res.json(await tesis.ayarlar());
   })
 );

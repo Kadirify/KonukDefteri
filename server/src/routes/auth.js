@@ -10,6 +10,7 @@ const { dogrula } = require('../middleware/dogrula');
 const { HttpHata } = require('../middleware/hata');
 const { sar } = require('../utils/async');
 const { simdi } = require('../utils/tarih');
+const gunluk = require('../services/gunluk');
 
 const router = express.Router();
 
@@ -65,6 +66,7 @@ router.post(
     await db('kullanicilar').where({ id: k.id }).update({ son_giris: simdi() });
     res.cookie('kd_token', tokenUret(k), cerez());
     req.kullanici = { id: k.id };
+    gunluk.kaydet(req, 'giris', 'kullanici:' + k.id);
     res.json(dto(k));
   })
 );
@@ -99,6 +101,7 @@ router.put(
     await db('kullanicilar')
       .where({ id: k.id })
       .update({ parola_hash: bcrypt.hashSync(req.body.yeniParola, 10), ilk_parola: false });
+    gunluk.kaydet(req, 'parola_degistir', 'kullanici:' + k.id);
     res.json({ tamam: true });
   })
 );

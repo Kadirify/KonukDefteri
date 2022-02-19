@@ -4,6 +4,7 @@ const konuk = require('./konuk');
 const tesis = require('./tesis');
 const kbs = require('./kbs');
 const kuyruk = require('./kbs/kuyruk');
+const gunluk = require('./gunluk');
 const { HttpHata } = require('../middleware/hata');
 const { simdi } = require('../utils/tarih');
 
@@ -77,6 +78,10 @@ async function girisYap(req, b) {
     }
   });
 
+  gunluk.kaydet(req, 'giris_kaydi', 'konaklama:' + olusanlar.join(','), {
+    oda: odaSatiri.oda_no,
+    kisi: olusanlar.length,
+  });
   kuyruk.tetikle();
   return olusanlar;
 }
@@ -107,6 +112,7 @@ async function cikisYap(req, id, b) {
       await kbs.bildirimOlustur(trx, h.id, 'cikis', baglanti.mod);
     }
   });
+  gunluk.kaydet(req, 'cikis_kaydi', 'konaklama:' + hedefler.map((h) => h.id).join(','));
   kuyruk.tetikle();
 }
 
@@ -123,6 +129,9 @@ async function odaDegistir(req, id, odaId) {
   await db.transaction(async (trx) => {
     await trx('konaklamalar').where({ id }).update({ oda_id: odaId });
     await kbs.bildirimOlustur(trx, id, 'guncelle', baglanti.mod);
+  });
+  gunluk.kaydet(req, 'oda_degisikligi', 'konaklama:' + id, {
+    yeniOda: hedef.oda_no,
   });
   kuyruk.tetikle();
 }
