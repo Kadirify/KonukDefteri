@@ -30,6 +30,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api', oturum);
 
 app.use('/api/tesis', require('./routes/tesis'));
+app.use('/api/katlar', require('./routes/katlar'));
 app.use('/api/kullanicilar', require('./routes/kullanicilar'));
 app.use('/api/ayarlar', require('./routes/ayarlar'));
 app.use('/api/uyruklar', require('./routes/uyruklar'));

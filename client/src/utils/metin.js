@@ -21,6 +21,37 @@ export const ROL = {
   resepsiyon: 'Resepsiyon',
 };
 
+export const TEMIZLIK = {
+  temiz: { etiket: 'Temiz', tur: 'basari' },
+  kirli: { etiket: 'Kirli', tur: 'uyari' },
+  temizleniyor: { etiket: 'Temizleniyor', tur: 'uyari' },
+  kontrol: { etiket: 'Kontrol bekliyor', tur: 'bilgi' },
+};
+
+export const KULLANIM = {
+  kullanimda: 'Kullanımda',
+  bakimda: 'Bakımda',
+  kapali: 'Kapalı',
+};
+
+export const KONAKLAMA_TUR = {
+  gece: 'Gece konaklama',
+  gunubirlik: 'Günübirlik',
+};
+
+export const GOREV_TUR = {
+  cikis: 'Çıkış temizliği',
+  gunluk: 'Günlük temizlik',
+  ekstra: 'Ekstra',
+};
+
+export const GOREV_DURUM = {
+  bekliyor: { etiket: 'Bekliyor', tur: 'uyari' },
+  yapiliyor: { etiket: 'Yapılıyor', tur: 'bilgi' },
+  kontrol: { etiket: 'Kontrol bekliyor', tur: 'bilgi' },
+  tamam: { etiket: 'Tamam', tur: 'basari' },
+};
+
 export const ISLEM = {
   giris: 'Oturum açtı',
   parola_degistir: 'Parolasını değiştirdi',
@@ -41,6 +72,16 @@ export const ISLEM = {
   kbs_test: 'KBS bağlantı testi yaptı',
   kesinti_tutanagi: 'Kesinti tutanağı oluşturdu',
   gunluk_liste_tam: 'Günlük listeyi tam TC ile aldı',
+  temizlik_basla: 'Temizliğe başladı',
+  temizlik_bitir: 'Temizliği bitirdi',
+  temizlik_kontrol: 'Temizliği kontrol etti',
+  temizlik_gunluk: 'Günlük temizlik görevlerini açtı',
+  oda_temizlik: 'Oda temizlik durumunu değiştirdi',
+  oda_bakima_al: 'Odayı bakıma aldı',
+  oda_bakimdan_cikar: 'Odayı bakımdan çıkardı',
+  kat_ekle: 'Kat ekledi',
+  kat_duzenle: 'Kat düzenledi',
+  kat_sil: 'Kat sildi',
 };
 
 export function islemMetni(kod) {

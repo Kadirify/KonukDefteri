@@ -23,6 +23,12 @@ exports.seed = async function (knex) {
     kuyruk_dakika: '2',
     saklama_yil: '5',
     tema: 'sistem',
+    giris_saati: '14:00',
+    cikis_saati: '11:00',
+    cikista_temizlik: '1',
+    temizlik_kontrolu: '0',
+    gunubirlik_izinli: '1',
+    gunubirlik_saat: '6',
   };
   for (const anahtar of Object.keys(varsayilan)) {
     const mevcut = await knex('ayarlar').where({ anahtar }).first();

@@ -18,6 +18,19 @@ export const odalar = {
   liste: () => istemci.get('/odalar').then(veri),
   ekle: (v) => istemci.post('/odalar', v).then(veri),
   duzenle: (id, v) => istemci.put(`/odalar/${id}`, v).then(veri),
+  gecmis: (id, gun) =>
+    istemci.get(`/odalar/${id}/gecmis`, { params: { gun: gun || 30 } }).then(veri),
+  temizlik: (id, v) => istemci.put(`/odalar/${id}/temizlik`, v).then(veri),
+  bakim: (id, v) => istemci.put(`/odalar/${id}/bakim`, v).then(veri),
+  sira: (katId, idler) => istemci.put('/odalar/sira', { katId, idler }).then(veri),
+};
+
+export const katlar = {
+  liste: () => istemci.get('/katlar').then(veri),
+  ekle: (v) => istemci.post('/katlar', v).then(veri),
+  duzenle: (id, v) => istemci.put(`/katlar/${id}`, v).then(veri),
+  sira: (idler) => istemci.put('/katlar/sira', { idler }).then(veri),
+  sil: (id) => istemci.delete(`/katlar/${id}`).then(veri),
 };
 
 export const konuklar = {
@@ -33,6 +46,8 @@ export const konaklamalar = {
   giris: (v) => istemci.post('/konaklamalar', v).then(veri),
   cikis: (id, v) => istemci.put(`/konaklamalar/${id}/cikis`, v || {}).then(veri),
   odaDegistir: (id, odaId) => istemci.put(`/konaklamalar/${id}/oda`, { odaId }).then(veri),
+  plan: (id, planlananCikis) =>
+    istemci.put(`/konaklamalar/${id}/plan`, { planlananCikis }).then(veri),
 };
 
 export const kbs = {

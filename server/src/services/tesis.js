@@ -20,12 +20,19 @@ async function kbsBaglantisi() {
   };
 }
 
-async function ayar(anahtar, varsayilan) {
-  const satir = await db('ayarlar').where({ anahtar }).first();
+// sqlite tek bağlantıyla çalışıyor: bir transaction içindeysen trx'i ver, yoksa kilitlenir
+async function ayar(anahtar, varsayilan, baglanti = db) {
+  const satir = await baglanti('ayarlar').where({ anahtar }).first();
   return satir ? satir.deger : varsayilan;
 }
 
 const VARSAYILAN_AYARLAR = {
+  giris_saati: '14:00',
+  cikis_saati: '11:00',
+  cikista_temizlik: '1',
+  temizlik_kontrolu: '0',
+  gunubirlik_izinli: '1',
+  gunubirlik_saat: '6',
   kuyruk_dakika: '2',
   saklama_yil: '5',
 };

@@ -6,7 +6,7 @@ const konaklama = require('../services/konaklama');
 const { dogrula } = require('../middleware/dogrula');
 const { HttpHata } = require('../middleware/hata');
 const { sar } = require('../utils/async');
-const { gecerliZaman } = require('../utils/tarih');
+const { gecerliZaman, simdi } = require('../utils/tarih');
 
 const router = express.Router();
 
@@ -17,6 +17,9 @@ const girisSemasi = Joi.object({
   odaId: Joi.number().integer().required(),
   girisZamani: zaman.allow(''),
   plaka: Joi.string().trim().uppercase().max(15).allow(''),
+  tur: Joi.string().valid('gece', 'gunubirlik').default('gece'),
+  planlananCikis: zaman.allow(''),
+  zorla: Joi.boolean().default(false),
   konuklar: Joi.array()
     .items(
       Joi.object({
@@ -38,7 +41,10 @@ const odaSemasi = Joi.object({
   odaId: Joi.number().integer().required(),
 });
 
-// Listede her konaklamanın son bildirimi yeter
+const planSemasi = Joi.object({
+  planlananCikis: zaman.required(),
+});
+
 async function sonBildirimler(konaklamaIdleri) {
   if (!konaklamaIdleri.length) return {};
   const satirlar = await db('kbs_bildirimler')
@@ -46,17 +52,13 @@ async function sonBildirimler(konaklamaIdleri) {
     .orderBy('id');
   const harita = {};
   satirlar.forEach((b) => {
-    harita[b.konaklama_id] = {
-      id: b.id,
-      tur: b.tur,
-      durum: b.durum,
-      sonHata: b.son_hata || '',
-    };
+    harita[b.konaklama_id] = { id: b.id, tur: b.tur, durum: b.durum, sonHata: b.son_hata || '' };
   });
   return harita;
 }
 
 function listeSatiri(s, bildirim) {
+  const an = simdi();
   return {
     id: s.id,
     konukId: s.konuk_id,
@@ -71,6 +73,10 @@ function listeSatiri(s, bildirim) {
     grupKodu: s.grup_kodu || '',
     girisZamani: s.giris_zamani,
     cikisZamani: s.cikis_zamani || '',
+    planlananCikis: s.planlanan_cikis || '',
+    gecikenCikis: s.durum === 'konakliyor' && !!s.planlanan_cikis && s.planlanan_cikis < an,
+    tur: s.tur || 'gece',
+    kisiSayisi: s.kisi_sayisi || 1,
     plaka: s.plaka || '',
     durum: s.durum,
     bildirim: bildirim || null,
@@ -93,7 +99,14 @@ function temelSorgu() {
 async function detay(id) {
   const s = await temelSorgu().where('konaklamalar.id', id).first();
   if (!s) throw new HttpHata(404, 'Konaklama bulunamadı');
-  const bildirimler = await db('kbs_bildirimler').where({ konaklama_id: id }).orderBy('id');
+  const [bildirimler, odaGecmisi] = await Promise.all([
+    db('kbs_bildirimler').where({ konaklama_id: id }).orderBy('id'),
+    db('konaklama_odalari')
+      .join('odalar', 'odalar.id', 'konaklama_odalari.oda_id')
+      .where({ konaklama_id: id })
+      .orderBy('konaklama_odalari.id')
+      .select('konaklama_odalari.*', 'odalar.oda_no'),
+  ]);
   return {
     ...listeSatiri(s, null),
     bildirimler: bildirimler.map((b) => ({
@@ -106,6 +119,13 @@ async function detay(id) {
       gonderimZamani: b.gonderim_zamani || '',
       yanitRef: b.yanit_ref || '',
       olusturma: b.olusturma,
+    })),
+    odaGecmisi: odaGecmisi.map((o) => ({
+      id: o.id,
+      odaId: o.oda_id,
+      odaNo: o.oda_no,
+      baslangic: o.baslangic,
+      bitis: o.bitis || '',
     })),
   };
 }
@@ -166,6 +186,24 @@ router.put(
   sar(async (req, res) => {
     const id = Number(req.params.id);
     await konaklama.odaDegistir(req, id, req.body.odaId);
+    res.json(await detay(id));
+  })
+);
+
+// Planlanan çıkışı uzat / kısalt
+router.put(
+  '/:id/plan',
+  dogrula(planSemasi),
+  sar(async (req, res) => {
+    const id = Number(req.params.id);
+    const s = await db('konaklamalar').where({ id }).first();
+    if (!s) throw new HttpHata(404, 'Konaklama bulunamadı');
+    if (s.durum !== 'konakliyor')
+      throw new HttpHata(400, 'Ayrılmış konaklamada plan değiştirilemez');
+    if (req.body.planlananCikis <= s.giris_zamani)
+      throw new HttpHata(400, 'Planlanan çıkış girişten sonra olmalı');
+    const hedef = s.grup_kodu ? { grup_kodu: s.grup_kodu, durum: 'konakliyor' } : { id };
+    await db('konaklamalar').where(hedef).update({ planlanan_cikis: req.body.planlananCikis });
     res.json(await detay(id));
   })
 );

@@ -1,41 +1,98 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { kbs, konaklamalar, konuklar as konukApi, odalar as odaApi } from '../api';
+import {
+  ayarlar as ayarApi,
+  konaklamalar,
+  konuklar as konukApi,
+  odalar as odaApi,
+  rezervasyonlar as rezApi,
+} from '../api';
 import { hataMesaji } from '../api/istemci';
 import useYukle from '../hooks/useYukle';
+import { useAuth } from '../hooks/useAuth';
 import Sayfa, { BosDurum, Yukleniyor } from '../components/Sayfa';
 import Uyari from '../components/Uyari';
 import Modal from '../components/Modal';
 import Alan from '../components/Alan';
-import { BildirimRozeti } from '../components/Rozet';
-import BildirimIslemleri from '../components/BildirimIslemleri';
+import Rozet, { BildirimRozeti } from '../components/Rozet';
 import KonukFormu from '../components/KonukFormu';
-import { girisDegerinden, girisDegerine, simdiYerel, trTarih } from '../utils/tarih';
-import { BILDIRIM_TUR, kimlikMetni, konukAdi } from '../utils/metin';
+import {
+  girisDegerinden,
+  girisDegerine,
+  gunEkleYerel,
+  saatEkleYerel,
+  simdiYerel,
+  trTarih,
+} from '../utils/tarih';
+import { BILDIRIM_TUR, kimlikMetni, konukAdi, TEMIZLIK } from '../utils/metin';
 
 export function odaEtiketi(o) {
   const dolu = o.konaklayanlar.length;
-  if (!o.aktif) return `${o.odaNo} - kapalı`;
+  if (o.tur === 'ortak') return `${o.odaNo} - ortak alan`;
+  if (o.kullanim === 'bakimda') return `${o.odaNo} - bakımda`;
+  if (o.kullanim === 'kapali') return `${o.odaNo} - kapalı`;
   if (dolu >= o.kapasite) return `${o.odaNo} - dolu (${dolu}/${o.kapasite})`;
-  if (dolu) return `${o.odaNo} - ${dolu}/${o.kapasite} dolu`;
-  return `${o.odaNo} - boş (${o.kapasite} kişilik)`;
+  const temizlik = o.temizlik !== 'temiz' ? ` - ${TEMIZLIK[o.temizlik].etiket.toLowerCase()}` : '';
+  if (dolu) return `${o.odaNo} - ${dolu}/${o.kapasite} dolu${temizlik}`;
+  const rez = o.doluluk === 'rezerve' ? ' - bugün rezerve' : '';
+  return `${o.odaNo} - boş (${o.kapasite} kişilik)${temizlik}${rez}`;
 }
 
-function odaSecilemez(o) {
-  return !o.aktif || o.konaklayanlar.length >= o.kapasite;
+function odaSecilemez(o, yonetici) {
+  if (o.tur === 'ortak' || o.kullanim !== 'kullanimda') return true;
+  if (o.konaklayanlar.length >= o.kapasite) return true;
+  if (o.temizlik !== 'temiz' && !yonetici) return true;
+  return false;
 }
 
-// Giriş kaydı: bir oda, bir ya da birden çok konuk (grup)
-export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda }) {
-  const [odaId, setOdaId] = useState(varsayilanOda || '');
+// Giriş kaydı. rezervasyon verilirse ondan açılır (oda, çıkış tarihi, konuk).
+export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda, rezervasyon }) {
+  const { kullanici } = useAuth();
+  const yonetici = kullanici.rol === 'yonetici';
+  const ayarlar = useYukle(() => ayarApi.oku(), []);
+  const [odaId, setOdaId] = useState(
+    varsayilanOda || (rezervasyon && rezervasyon.odaId ? String(rezervasyon.odaId) : '')
+  );
   const [girisZamani, setGirisZamani] = useState(girisDegerine(simdiYerel()));
+  const [tur, setTur] = useState('gece');
+  const [planlananCikis, setPlanlananCikis] = useState('');
+  const [planElle, setPlanElle] = useState(false);
   const [plaka, setPlaka] = useState('');
+  const [zorla, setZorla] = useState(false);
   const [secilenler, setSecilenler] = useState([]);
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(rezervasyon && !rezervasyon.konukId ? rezervasyon.adSoyad : '');
   const [sonuclar, setSonuclar] = useState([]);
   const [yeniAcik, setYeniAcik] = useState(false);
   const [hata, setHata] = useState('');
   const [mesgul, setMesgul] = useState(false);
+
+  useEffect(() => {
+    if (rezervasyon && rezervasyon.konukId) {
+      konukApi
+        .oku(rezervasyon.konukId)
+        .then((k) => setSecilenler([{ tip: 'kayitli', konuk: k }]))
+        .catch(() => {});
+    }
+  }, [rezervasyon]);
+
+  // Planlanan çıkış: elle değiştirilmediyse tür ve giriş saatinden hesaplanır
+  useEffect(() => {
+    if (planElle || !ayarlar.veri) return;
+    const giris = girisDegerinden(girisZamani);
+    if (!giris) return;
+    const cikisSaati = ayarlar.veri.cikis_saati || '11:00';
+    if (rezervasyon) {
+      setPlanlananCikis(girisDegerine(`${rezervasyon.cikisTarihi} ${cikisSaati}`));
+    } else if (tur === 'gunubirlik') {
+      setPlanlananCikis(
+        girisDegerine(saatEkleYerel(giris, Number(ayarlar.veri.gunubirlik_saat) || 6))
+      );
+    } else {
+      setPlanlananCikis(
+        girisDegerine(`${gunEkleYerel(giris.slice(0, 10), 1).slice(0, 10)} ${cikisSaati}`)
+      );
+    }
+  }, [tur, girisZamani, ayarlar.veri, planElle, rezervasyon]);
 
   useEffect(() => {
     if (q.trim().length < 2) {
@@ -50,6 +107,10 @@ export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda }) {
     }, 250);
     return () => clearTimeout(z);
   }, [q]);
+
+  const seciliOda = odalar.find((o) => String(o.id) === String(odaId));
+  const temizDegil = !!(seciliOda && seciliOda.temizlik !== 'temiz');
+  const gunubirlikIzinli = !ayarlar.veri || ayarlar.veri.gunubirlik_izinli !== '0';
 
   const ekleKayitli = (k) => {
     if (secilenler.some((s) => s.tip === 'kayitli' && s.konuk.id === k.id)) return;
@@ -69,18 +130,34 @@ export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda }) {
     setHata('');
     if (!odaId) return setHata('Oda seçin');
     if (!secilenler.length) return setHata('En az bir konuk ekleyin');
+    if (temizDegil && !zorla)
+      return setHata('Oda temiz değil. Yönetici "yine de yerleştir" seçebilir.');
     setMesgul(true);
     const konuklar = secilenler.map((s) =>
       s.tip === 'kayitli' ? { konukId: s.konuk.id } : { konuk: s.konuk }
     );
     try {
-      const sonuc = await konaklamalar.giris({
-        odaId: Number(odaId),
-        girisZamani: girisDegerinden(girisZamani),
-        plaka,
-        konuklar,
-      });
-      onTamam(sonuc);
+      if (rezervasyon) {
+        const r = await rezApi.giris(rezervasyon.id, {
+          odaId: Number(odaId),
+          girisZamani: girisDegerinden(girisZamani),
+          plaka,
+          zorla,
+          konuklar,
+        });
+        onTamam(r.konaklamalar.map((id) => ({ id })));
+      } else {
+        const sonuc = await konaklamalar.giris({
+          odaId: Number(odaId),
+          girisZamani: girisDegerinden(girisZamani),
+          plaka,
+          tur,
+          planlananCikis: girisDegerinden(planlananCikis),
+          zorla,
+          konuklar,
+        });
+        onTamam(sonuc);
+      }
     } catch (e) {
       setHata(hataMesaji(e));
     } finally {
@@ -90,13 +167,20 @@ export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda }) {
   };
 
   return (
-    <Modal baslik="Giriş kaydı" onKapat={onKapat} genis>
+    <Modal
+      baslik={rezervasyon ? `Rezervasyondan giriş - ${rezervasyon.adSoyad}` : 'Giriş kaydı'}
+      onKapat={onKapat}
+      genis
+    >
       <div className="izgara">
-        <Alan etiket="Oda">
+        <Alan
+          etiket="Oda"
+          hata={temizDegil && !yonetici ? 'Oda temiz değil, önce temizlik tamamlanmalı' : ''}
+        >
           <select value={odaId} onChange={(e) => setOdaId(e.target.value)}>
             <option value="">Seçin</option>
             {odalar.map((o) => (
-              <option key={o.id} value={o.id} disabled={odaSecilemez(o)}>
+              <option key={o.id} value={o.id} disabled={odaSecilemez(o, yonetici)}>
                 {odaEtiketi(o)}
               </option>
             ))}
@@ -109,6 +193,45 @@ export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda }) {
             onChange={(e) => setGirisZamani(e.target.value)}
           />
         </Alan>
+        {!rezervasyon && (
+          <div className="alan">
+            <span>Konaklama türü</span>
+            <div className="secenekler">
+              <label>
+                <input
+                  type="radio"
+                  value="gece"
+                  checked={tur === 'gece'}
+                  onChange={() => setTur('gece')}
+                />{' '}
+                Gece
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="gunubirlik"
+                  checked={tur === 'gunubirlik'}
+                  onChange={() => setTur('gunubirlik')}
+                  disabled={!gunubirlikIzinli}
+                />{' '}
+                Günübirlik
+              </label>
+            </div>
+          </div>
+        )}
+        <Alan
+          etiket="Planlanan çıkış"
+          not={planElle ? '' : 'Türe göre hesaplandı, değiştirilebilir'}
+        >
+          <input
+            type="datetime-local"
+            value={planlananCikis}
+            onChange={(e) => {
+              setPlanElle(true);
+              setPlanlananCikis(e.target.value);
+            }}
+          />
+        </Alan>
         <Alan etiket="Araç plakası" not="Varsa">
           <input
             type="text"
@@ -118,6 +241,15 @@ export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda }) {
           />
         </Alan>
       </div>
+      {temizDegil && yonetici && (
+        <label className="secenekler" style={{ marginTop: 12 }}>
+          <input type="checkbox" checked={zorla} onChange={(e) => setZorla(e.target.checked)} />
+          <span>
+            Oda <b>{TEMIZLIK[seciliOda.temizlik].etiket.toLowerCase()}</b>; yine de yerleştir
+            (günlüğe yazılır)
+          </span>
+        </label>
+      )}
 
       <div className="konuk-secimi" style={{ marginTop: 16 }}>
         <div className="baslik">
@@ -137,7 +269,7 @@ export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda }) {
                   ? '*******' + s.konuk.tc.slice(-4)
                   : s.konuk.pasaportNo}
               </span>
-              {s.tip === 'yeni' && <span className="soluk"> - yeni kart</span>}
+              {s.tip === 'yeni' && <Rozet tur="bilgi">yeni</Rozet>}
             </span>
             <button type="button" className="dugme dugme-sade dugme-kucuk" onClick={() => cikar(i)}>
               Kaldır
@@ -279,7 +411,7 @@ export function OdaDegistirModal({ konaklama, odalar, onKapat, onTamam }) {
           {odalar
             .filter((o) => o.id !== konaklama.odaId)
             .map((o) => (
-              <option key={o.id} value={o.id} disabled={odaSecilemez(o)}>
+              <option key={o.id} value={o.id} disabled={odaSecilemez(o, false)}>
                 {odaEtiketi(o)}
               </option>
             ))}
@@ -310,8 +442,6 @@ export default function Konaklamalar() {
 
   const liste = useYukle(() => konaklamalar.liste({ durum, q }), [durum, q]);
   const odalar = useYukle(() => odaApi.liste(), [liste.veri]);
-  const kbsDurum = useYukle(() => kbs.durum(), []);
-  const kbsMod = kbsDurum.veri ? kbsDurum.veri.mod : 'manuel';
 
   useEffect(() => {
     if (arama.get('yeni') === '1') {
@@ -338,9 +468,14 @@ export default function Konaklamalar() {
     <Sayfa
       baslik="Konaklamalar"
       eylemler={
-        <button type="button" className="dugme dugme-birincil" onClick={() => setGirisAcik(true)}>
-          + Giriş kaydı
-        </button>
+        <>
+          <Link to="/odalar" className="dugme">
+            Oda haritası
+          </Link>
+          <button type="button" className="dugme dugme-birincil" onClick={() => setGirisAcik(true)}>
+            + Giriş kaydı
+          </button>
+        </>
       }
     >
       {mesaj && (
@@ -360,6 +495,7 @@ export default function Konaklamalar() {
           {[
             ['konakliyor', 'Konaklayanlar'],
             ['ayrildi', 'Ayrılanlar'],
+            ['hepsi', 'Hepsi'],
           ].map(([d, ad]) => (
             <button
               type="button"
@@ -391,8 +527,9 @@ export default function Konaklamalar() {
                 <th>Konuk</th>
                 <th>Kimlik</th>
                 <th>Giriş</th>
+                <th>Planlanan çıkış</th>
                 <th>Çıkış</th>
-                <th>Bildirim</th>
+                <th>Son bildirim</th>
                 <th />
               </tr>
             </thead>
@@ -407,33 +544,45 @@ export default function Konaklamalar() {
                   <td>
                     <b>{konukAdi(s)}</b>
                     {s.grupKodu && <span className="soluk"> - grup {s.grupKodu}</span>}
+                    {s.tur === 'gunubirlik' && (
+                      <>
+                        {' '}
+                        <Rozet tur="basari">günübirlik</Rozet>
+                      </>
+                    )}
                   </td>
                   <td className="mono">{kimlikMetni(s)}</td>
                   <td className="sayi">{trTarih(s.girisZamani)}</td>
                   <td className="sayi">
+                    {s.planlananCikis ? (
+                      trTarih(s.planlananCikis)
+                    ) : (
+                      <span className="soluk">-</span>
+                    )}
+                    {s.gecikenCikis && (
+                      <>
+                        {' '}
+                        <Rozet tur="hata">gecikti</Rozet>
+                      </>
+                    )}
+                  </td>
+                  <td className="sayi">
                     {s.cikisZamani ? trTarih(s.cikisZamani) : <span className="soluk">-</span>}
                   </td>
-                  <td onClick={(e) => e.stopPropagation()}>
+                  <td>
                     {s.bildirim ? (
                       <>
                         <BildirimRozeti durum={s.bildirim.durum} />{' '}
                         <span className="soluk" style={{ fontSize: '0.8rem' }}>
                           {BILDIRIM_TUR[s.bildirim.tur]}
                         </span>
-                        <div style={{ marginTop: 4 }}>
-                          <BildirimIslemleri
-                            bildirim={s.bildirim}
-                            kbsMod={kbsMod}
-                            onGuncelle={() => liste.yenile()}
-                          />
-                        </div>
                       </>
                     ) : (
                       <span className="soluk">-</span>
                     )}
                   </td>
                   <td className="eylem" onClick={(e) => e.stopPropagation()}>
-                    {s.durum === 'konakliyor' ? (
+                    {s.durum === 'konakliyor' && (
                       <>
                         <button
                           type="button"
@@ -450,7 +599,8 @@ export default function Konaklamalar() {
                           Çıkış
                         </button>
                       </>
-                    ) : (
+                    )}
+                    {s.durum !== 'konakliyor' && (
                       <Link to={`/konaklamalar/${s.id}`} className="dugme dugme-kucuk dugme-sade">
                         Detay
                       </Link>
@@ -481,7 +631,7 @@ export default function Konaklamalar() {
         <CikisModal
           konaklama={cikis}
           onKapat={() => setCikis(null)}
-          onTamam={() => tamam('Çıkış kaydedildi, KBS bildirimi kuyruğa alındı.')}
+          onTamam={() => tamam('Çıkış kaydedildi, oda temizlik bekliyor.')}
         />
       )}
       {tasi && odalar.veri && (

@@ -4,12 +4,22 @@ const konuk = require('./konuk');
 const tesis = require('./tesis');
 const kbs = require('./kbs');
 const kuyruk = require('./kbs/kuyruk');
+const oda = require('./oda');
+const temizlik = require('./temizlik');
 const gunluk = require('./gunluk');
 const { HttpHata } = require('../middleware/hata');
-const { simdi } = require('../utils/tarih');
+const { simdi, saatEkle, gunEkle } = require('../utils/tarih');
 
 function grupKodu() {
   return crypto.randomBytes(3).toString('hex').toUpperCase();
+}
+
+// Planlanan çıkış girilmediyse: gece konaklamada ertesi gün çıkış saati,
+// günübirlikte giriş + ayarlardaki saat
+function varsayilanCikis(tur, girisZamani, ayarlar) {
+  if (tur === 'gunubirlik') return saatEkle(girisZamani, Number(ayarlar.gunubirlik_saat) || 6);
+  const ertesi = gunEkle(girisZamani.slice(0, 10) + ' 00:00', 1).slice(0, 10);
+  return `${ertesi} ${ayarlar.cikis_saati || '11:00'}`;
 }
 
 async function konukIdBul(trx, eleman) {
@@ -26,29 +36,28 @@ async function konukIdBul(trx, eleman) {
   return konuk.olustur(eleman.konuk, trx);
 }
 
-// Giriş yapılabilir mi: oda açık ve yer var
-async function girisUygunMu(oda, kisi) {
-  if (!oda) return { uygun: false, neden: 'Oda bulunamadı' };
-  if (!oda.aktif) return { uygun: false, neden: `${oda.oda_no} numaralı oda kapalı` };
-  const dolu = await db('konaklamalar')
-    .where({ oda_id: oda.id, durum: 'konakliyor' })
-    .count('id as n')
-    .first();
-  if (Number(dolu.n) + kisi > oda.kapasite) {
-    return {
-      uygun: false,
-      neden: `${oda.oda_no} numaralı odanın kapasitesi ${oda.kapasite}, sığmıyor`,
-    };
-  }
-  return { uygun: true };
-}
-
-// Giriş: tek konuk ya da grup. b: { odaId, girisZamani, plaka, konuklar[] }
+// b: girisSemasi'dan geçmiş body (routes/konaklamalar.js)
 async function girisYap(req, b) {
+  const ayarlar = await tesis.ayarlar();
   const girisZamani = b.girisZamani || simdi();
+  const tur = b.tur || 'gece';
+  if (tur === 'gunubirlik' && ayarlar.gunubirlik_izinli !== '1') {
+    throw new HttpHata(400, 'Günübirlik kullanım ayarlardan kapatılmış');
+  }
+  const planlananCikis = b.planlananCikis || varsayilanCikis(tur, girisZamani, ayarlar);
+  if (planlananCikis <= girisZamani)
+    throw new HttpHata(400, 'Planlanan çıkış girişten sonra olmalı', {
+      planlananCikis: 'Girişten sonra olmalı',
+    });
+
   const odaSatiri = await db('odalar').where({ id: b.odaId }).first();
-  const uygunluk = await girisUygunMu(odaSatiri, b.konuklar.length);
-  if (!uygunluk.uygun) throw new HttpHata(400, uygunluk.neden, { odaId: uygunluk.neden });
+  const zorla = !!b.zorla && req.kullanici.rol === 'yonetici';
+  const uygunluk = await oda.girisUygunMu(odaSatiri, b.konuklar.length, zorla);
+  if (!uygunluk.uygun)
+    throw new HttpHata(400, uygunluk.neden, {
+      odaId: uygunluk.neden,
+      temizlik: uygunluk.temizlik || false,
+    });
 
   const baglanti = await tesis.kbsBaglantisi();
   const grup = b.konuklar.length > 1 ? grupKodu() : null;
@@ -71,16 +80,36 @@ async function girisYap(req, b) {
         giris_zamani: girisZamani,
         plaka: b.plaka || '',
         durum: 'konakliyor',
+        tur,
+        planlanan_cikis: planlananCikis,
+        kisi_sayisi: b.konuklar.length,
         olusturan: req.kullanici.id,
+      });
+      await trx('konaklama_odalari').insert({
+        konaklama_id: konaklamaId,
+        oda_id: odaSatiri.id,
+        baslangic: girisZamani,
+        bitis: null,
       });
       await kbs.bildirimOlustur(trx, konaklamaId, 'giris', baglanti.mod);
       olusanlar.push(konaklamaId);
+    }
+    if (zorla && odaSatiri.temizlik !== 'temiz') {
+      await oda.olayKaydet(
+        trx,
+        odaSatiri.id,
+        'zorla_giris',
+        req.kullanici.id,
+        `oda ${odaSatiri.temizlik} iken giriş`
+      );
     }
   });
 
   gunluk.kaydet(req, 'giris_kaydi', 'konaklama:' + olusanlar.join(','), {
     oda: odaSatiri.oda_no,
     kisi: olusanlar.length,
+    tur,
+    zorla,
   });
   kuyruk.tetikle();
   return olusanlar;
@@ -92,24 +121,32 @@ async function cikisYap(req, id, b) {
   if (s.durum !== 'konakliyor') throw new HttpHata(400, 'Bu konaklama zaten kapatılmış');
   const cikisZamani = b.cikisZamani || simdi();
   if (cikisZamani < s.giris_zamani)
-    throw new HttpHata(400, 'Çıkış zamanı girişten önce olamaz', {
-      cikisZamani: 'Girişten önce',
-    });
+    throw new HttpHata(400, 'Çıkış zamanı girişten önce olamaz', { cikisZamani: 'Girişten önce' });
 
   let hedefler = [s];
   if (b.grupHepsi && s.grup_kodu) {
-    hedefler = await db('konaklamalar').where({
-      grup_kodu: s.grup_kodu,
-      durum: 'konakliyor',
-    });
+    hedefler = await db('konaklamalar').where({ grup_kodu: s.grup_kodu, durum: 'konakliyor' });
   }
   const baglanti = await tesis.kbsBaglantisi();
   await db.transaction(async (trx) => {
+    const bosalanOdalar = new Set();
     for (const h of hedefler) {
       await trx('konaklamalar')
         .where({ id: h.id })
         .update({ durum: 'ayrildi', cikis_zamani: cikisZamani });
+      await trx('konaklama_odalari')
+        .where({ konaklama_id: h.id })
+        .whereNull('bitis')
+        .update({ bitis: cikisZamani });
       await kbs.bildirimOlustur(trx, h.id, 'cikis', baglanti.mod);
+      bosalanOdalar.add(h.oda_id);
+    }
+    for (const odaId of bosalanOdalar) {
+      const kalan = await trx('konaklamalar')
+        .where({ oda_id: odaId, durum: 'konakliyor' })
+        .count('id as n')
+        .first();
+      if (Number(kalan.n) === 0) await temizlik.odaKirliYap(trx, odaId, req, 'cikis');
     }
   });
   gunluk.kaydet(req, 'cikis_kaydi', 'konaklama:' + hedefler.map((h) => h.id).join(','));
@@ -122,18 +159,33 @@ async function odaDegistir(req, id, odaId) {
   if (s.durum !== 'konakliyor') throw new HttpHata(400, 'Ayrılmış konuğun odası değiştirilemez');
   if (s.oda_id === odaId) throw new HttpHata(400, 'Konuk zaten bu odada');
   const hedef = await db('odalar').where({ id: odaId }).first();
-  const uygunluk = await girisUygunMu(hedef, 1);
+  const uygunluk = await oda.girisUygunMu(hedef, 1, false);
   if (!uygunluk.uygun) throw new HttpHata(400, uygunluk.neden, { odaId: uygunluk.neden });
 
+  const an = simdi();
+  const eskiOda = s.oda_id;
   const baglanti = await tesis.kbsBaglantisi();
   await db.transaction(async (trx) => {
     await trx('konaklamalar').where({ id }).update({ oda_id: odaId });
+    await trx('konaklama_odalari')
+      .where({ konaklama_id: id })
+      .whereNull('bitis')
+      .update({ bitis: an });
+    await trx('konaklama_odalari').insert({
+      konaklama_id: id,
+      oda_id: odaId,
+      baslangic: an,
+      bitis: null,
+    });
     await kbs.bildirimOlustur(trx, id, 'guncelle', baglanti.mod);
+    const kalan = await trx('konaklamalar')
+      .where({ oda_id: eskiOda, durum: 'konakliyor' })
+      .count('id as n')
+      .first();
+    if (Number(kalan.n) === 0) await temizlik.odaKirliYap(trx, eskiOda, req, 'cikis');
   });
-  gunluk.kaydet(req, 'oda_degisikligi', 'konaklama:' + id, {
-    yeniOda: hedef.oda_no,
-  });
+  gunluk.kaydet(req, 'oda_degisikligi', 'konaklama:' + id, { yeniOda: hedef.oda_no });
   kuyruk.tetikle();
 }
 
-module.exports = { girisYap, cikisYap, odaDegistir };
+module.exports = { girisYap, cikisYap, odaDegistir, varsayilanCikis };

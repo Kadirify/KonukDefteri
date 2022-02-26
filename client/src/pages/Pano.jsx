@@ -20,7 +20,7 @@ export default function Pano() {
       eylemler={
         <>
           <Link to="/odalar" className="dugme">
-            Odalar
+            Oda haritası
           </Link>
           <Link to="/konaklamalar?yeni=1" className="dugme dugme-birincil">
             + Giriş kaydı
@@ -47,7 +47,13 @@ export default function Pano() {
         </div>
         <div className="istatistik">
           <small>Bugün çıkış</small>
-          <b>{p.bugunCikis}</b>
+          <b>
+            {p.bugunCikis}
+            <span className="soluk" style={{ fontSize: '0.9rem', fontWeight: 400 }}>
+              {' '}
+              / {p.bugunCikacak} planlı
+            </span>
+          </b>
         </div>
         <div className="istatistik">
           <small>Konaklayan</small>
@@ -60,6 +66,24 @@ export default function Pano() {
             <span className="soluk" style={{ fontSize: '0.9rem', fontWeight: 400 }}>
               {' '}
               / {p.odaToplam}
+            </span>
+          </b>
+        </div>
+        <div className={'istatistik' + (p.gecikenCikis ? ' dikkat' : '')}>
+          <small>Geciken çıkış</small>
+          <b>{p.gecikenCikis}</b>
+        </div>
+        <div className={'istatistik' + (p.oda.kirli ? ' bekle' : '')}>
+          <small>Kirli oda</small>
+          <b>{p.oda.kirli}</b>
+        </div>
+        <div className="istatistik">
+          <small>Temizleniyor / bakımda</small>
+          <b>
+            {p.oda.temizleniyor + p.oda.kontrol}
+            <span className="soluk" style={{ fontSize: '0.9rem', fontWeight: 400 }}>
+              {' '}
+              / {p.oda.bakimda}
             </span>
           </b>
         </div>
@@ -82,28 +106,35 @@ export default function Pano() {
             </Link>
           }
         >
-          {p.hatali} bildirim KBS'ye gönderilemedi. Servis açılınca kendiliğinden yeniden denenir.
+          {p.hatali} bildirim KBS'ye gönderilemedi.
         </Uyari>
       )}
 
-      <div className="kart">
-        <div className="kart-baslik">
-          <h2>Son işlemler</h2>
-          <span className="soluk">KBS: {KBS_MOD[p.kbsMod] || p.kbsMod}</span>
+      <div
+        className="izgara"
+        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', alignItems: 'start' }}
+      >
+        <div className="kart" style={{ marginTop: 0 }}>
+          <div className="kart-baslik">
+            <h2>Son işlemler</h2>
+            <span className="soluk">
+              KBS: {KBS_MOD[p.kbsMod] || p.kbsMod}
+            </span>
+          </div>
+          {p.sonIslemler.length === 0 ? (
+            <p className="soluk">Kayıt yok.</p>
+          ) : (
+            p.sonIslemler.map((i) => (
+              <div className="liste-satir" key={i.id}>
+                <span>
+                  <b>{i.kullanici}</b> {islemMetni(i.islem).toLowerCase()}
+                  {i.hedef && <span className="soluk mono"> - {i.hedef}</span>}
+                </span>
+                <span className="soluk sayi">{trTarih(i.zaman)}</span>
+              </div>
+            ))
+          )}
         </div>
-        {p.sonIslemler.length === 0 ? (
-          <p className="soluk">Kayıt yok.</p>
-        ) : (
-          p.sonIslemler.map((i) => (
-            <div className="liste-satir" key={i.id}>
-              <span>
-                <b>{i.kullanici}</b> {islemMetni(i.islem).toLowerCase()}
-                {i.hedef && <span className="soluk mono"> - {i.hedef}</span>}
-              </span>
-              <span className="soluk sayi">{trTarih(i.zaman)}</span>
-            </div>
-          ))
-        )}
       </div>
     </Sayfa>
   );
