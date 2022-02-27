@@ -8,7 +8,7 @@ import Logo from './Logo';
 
 const menu = [
   { yol: '/', ad: 'Pano', son: true },
-  { yol: '/odalar', ad: 'Odalar' },
+  { yol: '/odalar', ad: 'Oda haritası', gorevli: true },
   { yol: '/konaklamalar', ad: 'Konaklamalar' },
   { yol: '/konuklar', ad: 'Konuklar' },
   { yol: '/kbs', ad: 'KBS kuyruğu', sayac: true },
