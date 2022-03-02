@@ -29,8 +29,20 @@ app.use('/api/auth', require('./routes/auth'));
 // Buradan sonrası oturum ister
 app.use('/api', oturum);
 
+// Kat görevlisi yalnız temizlik işlerini ve oda durumlarını görür
+app.use('/api', (req, res, next) => {
+  if (req.kullanici.rol !== 'kat_gorevlisi') return next();
+  const serbest =
+    req.path.startsWith('/temizlik') ||
+    (req.method === 'GET' && /^\/(odalar|katlar|ayarlar|cizelge)(\/|$)/.test(req.path)) ||
+    /^\/odalar\/\d+\/temizlik$/.test(req.path);
+  if (serbest) return next();
+  return res.status(403).json({ hata: 'Bu bölüm kat görevlisine kapalı' });
+});
+
 app.use('/api/tesis', require('./routes/tesis'));
 app.use('/api/katlar', require('./routes/katlar'));
+app.use('/api/temizlik', require('./routes/temizlik'));
 app.use('/api/kullanicilar', require('./routes/kullanicilar'));
 app.use('/api/ayarlar', require('./routes/ayarlar'));
 app.use('/api/uyruklar', require('./routes/uyruklar'));

@@ -12,6 +12,13 @@ export default function Korumali() {
   if (!kullanici) {
     return <Navigate to="/giris" replace state={{ nereden: konum.pathname }} />;
   }
+  // Kat görevlisi yalnız temizlik, oda haritası, çizelge ve parola ekranını görür
+  if (kullanici.rol === 'kat_gorevlisi') {
+    const serbest = ['/temizlik', '/odalar', '/cizelge', '/ayarlar/parola', '/ayarlar'];
+    if (!serbest.some((y) => konum.pathname === y || konum.pathname.startsWith(y + '/'))) {
+      return <Navigate to="/temizlik" replace />;
+    }
+  }
   return (
     <Duzen>
       <Outlet />

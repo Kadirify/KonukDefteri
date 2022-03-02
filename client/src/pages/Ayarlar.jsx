@@ -491,6 +491,7 @@ function KullaniciFormu({ kullanici, onKapat, onTamam }) {
             <select {...register('rol')}>
               <option value="resepsiyon">Resepsiyon</option>
               <option value="yonetici">Yönetici</option>
+              <option value="kat_gorevlisi">Kat görevlisi</option>
             </select>
           </Alan>
           {kullanici && (

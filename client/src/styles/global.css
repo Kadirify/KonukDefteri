@@ -1157,6 +1157,45 @@ textarea:focus {
   }
 }
 
+/* temizlik panosu */
+
+.gorev-satir {
+  display: grid;
+  grid-template-columns: 70px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--cizgi);
+}
+
+.gorev-satir:last-child {
+  border-bottom: 0;
+}
+
+.gorev-satir .no {
+  font-family: var(--mono);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.gorev-satir .eylemler {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 560px) {
+  .gorev-satir {
+    grid-template-columns: 60px 1fr;
+  }
+
+  .gorev-satir .eylemler {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
 /* dar ekran */
 
 @media (max-width: 900px) {

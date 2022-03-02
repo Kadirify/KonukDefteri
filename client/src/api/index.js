@@ -33,6 +33,15 @@ export const katlar = {
   sil: (id) => istemci.delete(`/katlar/${id}`).then(veri),
 };
 
+export const temizlik = {
+  liste: (durum) => istemci.get('/temizlik', { params: { durum: durum || 'acik' } }).then(veri),
+  ekle: (v) => istemci.post('/temizlik', v).then(veri),
+  gunluk: () => istemci.post('/temizlik/gunluk').then(veri),
+  basla: (id) => istemci.post(`/temizlik/${id}/basla`).then(veri),
+  bitir: (id, notlar) => istemci.post(`/temizlik/${id}/bitir`, { notlar: notlar || '' }).then(veri),
+  kontrol: (id) => istemci.post(`/temizlik/${id}/kontrol`).then(veri),
+};
+
 export const konuklar = {
   liste: (q) => istemci.get('/konuklar', { params: { q: q || '' } }).then(veri),
   oku: (id) => istemci.get(`/konuklar/${id}`).then(veri),

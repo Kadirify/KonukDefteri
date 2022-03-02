@@ -10,10 +10,11 @@ const menu = [
   { yol: '/', ad: 'Pano', son: true },
   { yol: '/odalar', ad: 'Oda haritası', gorevli: true },
   { yol: '/konaklamalar', ad: 'Konaklamalar' },
+  { yol: '/temizlik', ad: 'Temizlik', gorevli: true },
   { yol: '/konuklar', ad: 'Konuklar' },
   { yol: '/kbs', ad: 'KBS kuyruğu', sayac: true },
   { yol: '/raporlar', ad: 'Raporlar' },
-  { yol: '/ayarlar', ad: 'Ayarlar' },
+  { yol: '/ayarlar', ad: 'Ayarlar', gorevli: true },
 ];
 
 export default function Duzen({ children }) {
@@ -28,7 +29,10 @@ export default function Duzen({ children }) {
     setAcik(false);
   }, [konum.pathname]);
 
+  const gorevli = kullanici.rol === 'kat_gorevlisi';
+
   useEffect(() => {
+    if (gorevli) return undefined;
     let durdu = false;
     const oku = () => {
       kbs
@@ -44,14 +48,15 @@ export default function Duzen({ children }) {
       durdu = true;
       clearInterval(z);
     };
-  }, [konum.pathname]);
+  }, [konum.pathname, gorevli]);
 
   useEffect(() => {
+    if (gorevli) return;
     tesis
       .oku()
       .then((t) => setTesisAdi(t.ad))
       .catch(() => {});
-  }, [konum.pathname]);
+  }, [konum.pathname, gorevli]);
 
   return (
     <div className="uygulama">
@@ -68,6 +73,7 @@ export default function Duzen({ children }) {
         <div className="tesis-adi">{tesisAdi || 'Tesis adı girilmedi'}</div>
         <nav>
           {menu
+            .filter((m) => !gorevli || m.gorevli)
             .map((m) => (
               <NavLink
                 key={m.yol}

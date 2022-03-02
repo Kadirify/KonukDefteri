@@ -19,12 +19,12 @@ const yeniSema = Joi.object({
     .pattern(/^[a-z0-9._-]{3,40}$/)
     .required(),
   parola: Joi.string().min(8).max(100).required(),
-  rol: Joi.string().valid('yonetici', 'resepsiyon').required(),
+  rol: Joi.string().valid('yonetici', 'resepsiyon', 'kat_gorevlisi').required(),
 });
 
 const duzenleSema = Joi.object({
   adSoyad: Joi.string().trim().min(2).max(80).required(),
-  rol: Joi.string().valid('yonetici', 'resepsiyon').required(),
+  rol: Joi.string().valid('yonetici', 'resepsiyon', 'kat_gorevlisi').required(),
   aktif: Joi.boolean().required(),
   parola: Joi.string().min(8).max(100).allow(''),
 });

@@ -19,6 +19,7 @@ export const KBS_MOD = {
 export const ROL = {
   yonetici: 'Yönetici',
   resepsiyon: 'Resepsiyon',
+  kat_gorevlisi: 'Kat görevlisi',
 };
 
 export const TEMIZLIK = {
