@@ -23,6 +23,7 @@ router.get(
       cikacak,
       geciken,
       odaDurumlari,
+      gelecek,
       temizlikAcik,
     ] = await Promise.all([
       db('konaklamalar').where('giris_zamani', 'like', `${gun}%`).count('id as n').first(),
@@ -52,6 +53,12 @@ router.get(
         .select('temizlik', 'kullanim')
         .count('id as n')
         .groupBy('temizlik', 'kullanim'),
+      db('rezervasyonlar')
+        .leftJoin('odalar', 'odalar.id', 'rezervasyonlar.oda_id')
+        .where('rezervasyonlar.giris_tarihi', gun)
+        .whereIn('rezervasyonlar.durum', ['bekliyor', 'onayli'])
+        .select('rezervasyonlar.*', 'odalar.oda_no')
+        .orderBy('rezervasyonlar.id'),
       db('temizlik_gorevleri')
         .whereIn('durum', ['bekliyor', 'yapiliyor', 'kontrol'])
         .count('id as n')
@@ -82,6 +89,14 @@ router.get(
       bekleyen: (say.bekliyor || 0) + (say.manuel || 0),
       hatali: say.hata || 0,
       kbsMod: t.kbs_mod || 'manuel',
+      bugunGelecek: gelecek.map((r) => ({
+        id: r.id,
+        adSoyad: r.ad_soyad || '',
+        odaNo: r.oda_no || '',
+        kisiSayisi: r.kisi_sayisi,
+        kaynak: r.kaynak,
+        cikisTarihi: r.cikis_tarihi,
+      })),
       sonIslemler: sonIslemler.map((i) => ({
         id: i.id,
         kullanici: i.ad_soyad || 'sistem',

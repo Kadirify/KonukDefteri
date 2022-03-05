@@ -3,8 +3,8 @@ import { pano } from '../api';
 import useYukle from '../hooks/useYukle';
 import Sayfa, { Yukleniyor } from '../components/Sayfa';
 import Uyari from '../components/Uyari';
-import { trTarih } from '../utils/tarih';
-import { islemMetni, KBS_MOD } from '../utils/metin';
+import { trGun, trTarih } from '../utils/tarih';
+import { islemMetni, KBS_MOD, REZ_KAYNAK } from '../utils/metin';
 
 export default function Pano() {
   const { veri, yukleniyor, hata } = useYukle(() => pano.oku(), []);
@@ -114,6 +114,29 @@ export default function Pano() {
         className="izgara"
         style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', alignItems: 'start' }}
       >
+        <div className="kart" style={{ marginTop: 0 }}>
+          <div className="kart-baslik">
+            <h2>Bugün gelecekler</h2>
+            <Link to="/rezervasyonlar" className="dugme dugme-kucuk dugme-sade">
+              Rezervasyonlar
+            </Link>
+          </div>
+          {p.bugunGelecek.length === 0 ? (
+            <p className="soluk">Bugün için rezervasyon yok.</p>
+          ) : (
+            p.bugunGelecek.map((r) => (
+              <div className="liste-satir" key={r.id}>
+                <span>
+                  <b>{r.adSoyad || 'Konuk'}</b> - {r.kisiSayisi} kişi -{' '}
+                  {REZ_KAYNAK[r.kaynak] || r.kaynak}
+                </span>
+                <span className="soluk">
+                  {r.odaNo ? 'Oda ' + r.odaNo : 'oda atanmadı'} - {trGun(r.cikisTarihi)}'e kadar
+                </span>
+              </div>
+            ))
+          )}
+        </div>
         <div className="kart" style={{ marginTop: 0 }}>
           <div className="kart-baslik">
             <h2>Son işlemler</h2>

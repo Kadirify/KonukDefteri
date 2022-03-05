@@ -10,6 +10,7 @@ const menu = [
   { yol: '/', ad: 'Pano', son: true },
   { yol: '/odalar', ad: 'Oda haritası', gorevli: true },
   { yol: '/konaklamalar', ad: 'Konaklamalar' },
+  { yol: '/rezervasyonlar', ad: 'Rezervasyonlar' },
   { yol: '/temizlik', ad: 'Temizlik', gorevli: true },
   { yol: '/konuklar', ad: 'Konuklar' },
   { yol: '/kbs', ad: 'KBS kuyruğu', sayac: true },

@@ -105,6 +105,10 @@ export default function KonaklamaDetay() {
             <span>Plaka</span>
             {s.plaka || '-'}
           </div>
+          <div>
+            <span>Rezervasyon</span>
+            {s.rezervasyonId ? <Link to="/rezervasyonlar">#{s.rezervasyonId}</Link> : 'kapıdan'}
+          </div>
         </div>
         {planAcik && (
           <div className="panel-ic-form" style={{ maxWidth: 420 }}>

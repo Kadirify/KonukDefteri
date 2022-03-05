@@ -42,6 +42,17 @@ export const temizlik = {
   kontrol: (id) => istemci.post(`/temizlik/${id}/kontrol`).then(veri),
 };
 
+export const rezervasyonlar = {
+  liste: (aralik) =>
+    istemci.get('/rezervasyonlar', { params: { aralik: aralik || 'gelecek' } }).then(veri),
+  oku: (id) => istemci.get(`/rezervasyonlar/${id}`).then(veri),
+  ekle: (v) => istemci.post('/rezervasyonlar', v).then(veri),
+  duzenle: (id, v) => istemci.put(`/rezervasyonlar/${id}`, v).then(veri),
+  giris: (id, v) => istemci.post(`/rezervasyonlar/${id}/giris`, v).then(veri),
+  iptal: (id) => istemci.post(`/rezervasyonlar/${id}/iptal`).then(veri),
+  gelmedi: (id) => istemci.post(`/rezervasyonlar/${id}/gelmedi`).then(veri),
+};
+
 export const konuklar = {
   liste: (q) => istemci.get('/konuklar', { params: { q: q || '' } }).then(veri),
   oku: (id) => istemci.get(`/konuklar/${id}`).then(veri),

@@ -53,6 +53,22 @@ export const GOREV_DURUM = {
   tamam: { etiket: 'Tamam', tur: 'basari' },
 };
 
+export const REZ_DURUM = {
+  bekliyor: { etiket: 'Bekliyor', tur: 'uyari' },
+  onayli: { etiket: 'Onaylı', tur: 'bilgi' },
+  geldi: { etiket: 'Geldi', tur: 'basari' },
+  iptal: { etiket: 'İptal', tur: 'notr' },
+  gelmedi: { etiket: 'Gelmedi', tur: 'hata' },
+};
+
+export const REZ_KAYNAK = {
+  telefon: 'Telefon',
+  booking: 'Booking',
+  airbnb: 'Airbnb',
+  kapidan: 'Kapıdan',
+  diger: 'Diğer',
+};
+
 export const ISLEM = {
   giris: 'Oturum açtı',
   parola_degistir: 'Parolasını değiştirdi',
@@ -83,6 +99,10 @@ export const ISLEM = {
   kat_ekle: 'Kat ekledi',
   kat_duzenle: 'Kat düzenledi',
   kat_sil: 'Kat sildi',
+  rezervasyon_ekle: 'Rezervasyon aldı',
+  rezervasyon_duzenle: 'Rezervasyon düzenledi',
+  rezervasyon_iptal: 'Rezervasyonu iptal etti',
+  rezervasyon_gelmedi: 'Rezervasyonu gelmedi olarak kapattı',
 };
 
 export function islemMetni(kod) {

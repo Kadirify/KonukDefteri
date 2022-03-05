@@ -59,6 +59,14 @@ async function girisYap(req, b) {
       temizlik: uygunluk.temizlik || false,
     });
 
+  let rezervasyon = null;
+  if (b.rezervasyonId) {
+    rezervasyon = await db('rezervasyonlar').where({ id: b.rezervasyonId }).first();
+    if (!rezervasyon) throw new HttpHata(400, 'Rezervasyon bulunamadı');
+    if (!['bekliyor', 'onayli'].includes(rezervasyon.durum))
+      throw new HttpHata(400, 'Bu rezervasyon kapatılmış');
+  }
+
   const baglanti = await tesis.kbsBaglantisi();
   const grup = b.konuklar.length > 1 ? grupKodu() : null;
   const olusanlar = [];
@@ -82,6 +90,7 @@ async function girisYap(req, b) {
         durum: 'konakliyor',
         tur,
         planlanan_cikis: planlananCikis,
+        rezervasyon_id: rezervasyon ? rezervasyon.id : null,
         kisi_sayisi: b.konuklar.length,
         olusturan: req.kullanici.id,
       });
@@ -102,6 +111,11 @@ async function girisYap(req, b) {
         req.kullanici.id,
         `oda ${odaSatiri.temizlik} iken giriş`
       );
+    }
+    if (rezervasyon) {
+      await trx('rezervasyonlar')
+        .where({ id: rezervasyon.id })
+        .update({ durum: 'geldi', konaklama_id: olusanlar[0], oda_id: odaSatiri.id });
     }
   });
 

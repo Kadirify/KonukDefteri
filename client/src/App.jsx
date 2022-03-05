@@ -6,6 +6,7 @@ import Konaklamalar from './pages/Konaklamalar';
 import KonaklamaDetay from './pages/KonaklamaDetay';
 import Odalar from './pages/Odalar';
 import Temizlik from './pages/Temizlik';
+import Rezervasyonlar from './pages/Rezervasyonlar';
 import Konuklar from './pages/Konuklar';
 import KonukDetay from './pages/KonukDetay';
 import KbsKuyrugu from './pages/KbsKuyrugu';
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="konaklamalar/:id" element={<KonaklamaDetay />} />
         <Route path="odalar" element={<Odalar />} />
         <Route path="temizlik" element={<Temizlik />} />
+        <Route path="rezervasyonlar" element={<Rezervasyonlar />} />
         <Route path="konuklar" element={<Konuklar />} />
         <Route path="konuklar/:id" element={<KonukDetay />} />
         <Route path="kbs" element={<KbsKuyrugu />} />

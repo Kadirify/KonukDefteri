@@ -19,6 +19,7 @@ const girisSemasi = Joi.object({
   plaka: Joi.string().trim().uppercase().max(15).allow(''),
   tur: Joi.string().valid('gece', 'gunubirlik').default('gece'),
   planlananCikis: zaman.allow(''),
+  rezervasyonId: Joi.number().integer().allow(null),
   zorla: Joi.boolean().default(false),
   konuklar: Joi.array()
     .items(
@@ -77,6 +78,7 @@ function listeSatiri(s, bildirim) {
     gecikenCikis: s.durum === 'konakliyor' && !!s.planlanan_cikis && s.planlanan_cikis < an,
     tur: s.tur || 'gece',
     kisiSayisi: s.kisi_sayisi || 1,
+    rezervasyonId: s.rezervasyon_id || null,
     plaka: s.plaka || '',
     durum: s.durum,
     bildirim: bildirim || null,
