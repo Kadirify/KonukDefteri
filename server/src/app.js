@@ -44,6 +44,7 @@ app.use('/api/tesis', require('./routes/tesis'));
 app.use('/api/katlar', require('./routes/katlar'));
 app.use('/api/temizlik', require('./routes/temizlik'));
 app.use('/api/rezervasyonlar', require('./routes/rezervasyonlar'));
+app.use('/api/cizelge', require('./routes/cizelge'));
 app.use('/api/kullanicilar', require('./routes/kullanicilar'));
 app.use('/api/ayarlar', require('./routes/ayarlar'));
 app.use('/api/uyruklar', require('./routes/uyruklar'));

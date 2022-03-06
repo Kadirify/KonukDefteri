@@ -53,6 +53,10 @@ export const rezervasyonlar = {
   gelmedi: (id) => istemci.post(`/rezervasyonlar/${id}/gelmedi`).then(veri),
 };
 
+export const cizelge = {
+  oku: (gun, gorunum) => istemci.get('/cizelge', { params: { gun, gorunum } }).then(veri),
+};
+
 export const konuklar = {
   liste: (q) => istemci.get('/konuklar', { params: { q: q || '' } }).then(veri),
   oku: (id) => istemci.get(`/konuklar/${id}`).then(veri),

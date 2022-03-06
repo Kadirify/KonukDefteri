@@ -1157,6 +1157,133 @@ textarea:focus {
   }
 }
 
+/* zaman çizelgesi */
+
+.cizelge {
+  background: var(--yuzey);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--yaricap);
+  box-shadow: var(--golge);
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+
+.cz-satir {
+  display: grid;
+  grid-template-columns: 84px minmax(520px, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.cz-baslik .cz-pist {
+  height: 22px;
+  background: none;
+  border-bottom: 1px solid var(--cizgi);
+  border-radius: 0;
+  overflow: visible;
+}
+
+.cz-isaret {
+  position: absolute;
+  top: 2px;
+  font-size: 0.7rem;
+  color: var(--metin-soluk);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.cz-kat {
+  font-size: 0.84rem;
+  color: var(--metin);
+  font-weight: 700;
+  padding: 12px 0 4px;
+  border-top: 1px solid var(--cizgi);
+  margin-top: 8px;
+}
+
+.cz-oda {
+  font-family: var(--mono);
+  font-size: 0.84rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.cz-oda small {
+  font-family: var(--yazi);
+  color: var(--metin-soluk);
+  font-size: 0.7rem;
+}
+
+.cz-pist {
+  position: relative;
+  height: 32px;
+  background: var(--yuzey-2);
+  border-radius: 4px;
+  margin: 3px 0;
+  overflow: hidden;
+}
+
+.cz-pist .cizgi {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--cizgi);
+}
+
+.cz-pist .simdi {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--hata);
+  z-index: 2;
+}
+
+.blok {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  border-radius: 4px;
+  padding: 0 7px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 24px;
+  cursor: pointer;
+  border: 0;
+  text-align: left;
+  font-family: inherit;
+}
+
+.blok.konaklama {
+  background: var(--renk-ana);
+}
+.blok.gunubirlik {
+  background: var(--basari);
+}
+.blok.temizlik {
+  background: var(--renk-vurgu);
+  color: #1a1308;
+}
+.blok.bakim {
+  background: var(--hata);
+}
+.blok.rezervasyon {
+  background: transparent;
+  border: 2px dashed var(--renk-ana);
+  color: var(--metin);
+  line-height: 20px;
+}
+
+[data-tema='koyu'] .blok.konaklama,
+.sistem-koyu:not([data-tema='acik']) .blok.konaklama {
+  background: #2a4b7a;
+}
+
 /* temizlik panosu */
 
 .gorev-satir {
