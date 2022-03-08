@@ -95,6 +95,7 @@ export const raporlar = {
   gunluk: (tarih, tam) =>
     istemci.get('/raporlar/gunluk', { params: { tarih, tam: tam ? '1' : '0' } }).then(veri),
   aylik: (ay) => istemci.get('/raporlar/aylik', { params: { ay } }).then(veri),
+  doluluk: (ay) => istemci.get('/raporlar/doluluk', { params: { ay } }).then(veri),
 };
 
 export const ayarlar = {

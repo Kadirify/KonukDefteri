@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import Sayfa, { Yukleniyor } from '../components/Sayfa';
 import Uyari from '../components/Uyari';
 import { buAy, bugunYerel, trGun, trTarih } from '../utils/tarih';
+import { REZ_KAYNAK } from '../utils/metin';
 
 function GunlukListe() {
   const { kullanici } = useAuth();
@@ -179,6 +180,112 @@ function AylikOzet() {
   );
 }
 
+function Doluluk() {
+  const [ay, setAy] = useState(buAy());
+  const { veri, yukleniyor, hata } = useYukle(() => raporlar.doluluk(ay), [ay]);
+
+  return (
+    <>
+      <div className="arac-cubugu yazdirma-gizle">
+        <input type="month" value={ay} onChange={(e) => setAy(e.target.value)} />
+      </div>
+      {hata && <Uyari tur="hata">{hata}</Uyari>}
+      {yukleniyor && !veri ? (
+        <Yukleniyor />
+      ) : (
+        veri && (
+          <>
+            <div className="istatistikler">
+              <div className="istatistik">
+                <small>Doluluk oranı</small>
+                <b>%{veri.dolulukOrani}</b>
+              </div>
+              <div className="istatistik">
+                <small>Oda sayısı</small>
+                <b>{veri.odaSayisi}</b>
+              </div>
+              <div className="istatistik">
+                <small>Ortalama kalış</small>
+                <b>
+                  {veri.ortalamaKalis}
+                  <span className="soluk" style={{ fontSize: '0.9rem', fontWeight: 400 }}>
+                    {' '}
+                    gece
+                  </span>
+                </b>
+              </div>
+              <div className="istatistik">
+                <small>Günübirlik</small>
+                <b>{veri.gunubirlik}</b>
+              </div>
+              <div className="istatistik">
+                <small>Temizlik</small>
+                <b>
+                  {veri.temizlik.gorev}
+                  <span className="soluk" style={{ fontSize: '0.9rem', fontWeight: 400 }}>
+                    {' '}
+                    görev - ort. {veri.temizlik.ortalamaDakika} dk
+                  </span>
+                </b>
+              </div>
+            </div>
+            <div className="izgara" style={{ gridTemplateColumns: '2fr 1fr', alignItems: 'start' }}>
+              <div className="kart" style={{ marginTop: 0 }}>
+                <h3 style={{ marginBottom: 8 }}>Gece gece doluluk</h3>
+                {veri.gunler.map((g) => (
+                  <div
+                    key={g.gun}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '72px 1fr 48px',
+                      gap: 8,
+                      alignItems: 'center',
+                      fontSize: '0.82rem',
+                      padding: '2px 0',
+                    }}
+                  >
+                    <span className="soluk sayi">{trGun(g.gun).slice(0, 5)}</span>
+                    <span
+                      style={{
+                        background: 'var(--yuzey-2)',
+                        borderRadius: 4,
+                        height: 12,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: 'block',
+                          width: `${g.oran}%`,
+                          height: '100%',
+                          background: 'var(--renk-ana)',
+                        }}
+                      />
+                    </span>
+                    <span className="sayi sag">
+                      {g.dolu}/{veri.odaSayisi}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="kart" style={{ marginTop: 0 }}>
+                <h3 style={{ marginBottom: 8 }}>Rezervasyon kaynağı</h3>
+                {veri.kaynaklar.length === 0 && <p className="soluk">-</p>}
+                {veri.kaynaklar.map((k) => (
+                  <div className="liste-satir" key={k.kaynak}>
+                    <span>{REZ_KAYNAK[k.kaynak] || k.kaynak}</span>
+                    <b className="sayi">{k.n}</b>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )
+      )}
+    </>
+  );
+}
+
 export default function Raporlar() {
   const [sekme, setSekme] = useState('gunluk');
   return (
@@ -198,9 +305,17 @@ export default function Raporlar() {
         >
           Aylık özet
         </button>
+        <button
+          type="button"
+          className={sekme === 'doluluk' ? 'aktif' : ''}
+          onClick={() => setSekme('doluluk')}
+        >
+          Doluluk
+        </button>
       </div>
       {sekme === 'gunluk' && <GunlukListe />}
       {sekme === 'aylik' && <AylikOzet />}
+      {sekme === 'doluluk' && <Doluluk />}
     </Sayfa>
   );
 }
