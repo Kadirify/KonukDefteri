@@ -64,6 +64,18 @@ router.get(
         .count('id as n')
         .first(),
     ]);
+    const bugunTahsilat = await db('tahsilatlar')
+      .where('tarih', 'like', `${gun}%`)
+      .sum('tutar as t')
+      .first();
+    // TODO: açık hesap başına 2 sorgu, çok hesap olunca yavaşlar; tek sorguya çekilecek
+    const acikHesaplar = await db('hesaplar').where({ durum: 'acik' }).select('id');
+    let acikBorc = 0;
+    for (const h of acikHesaplar) {
+      const k = await db('hesap_kalemleri').where({ hesap_id: h.id }).sum('tutar as t').first();
+      const ta = await db('tahsilatlar').where({ hesap_id: h.id }).sum('tutar as t').first();
+      acikBorc += Number(k.t || 0) - Number(ta.t || 0);
+    }
     const say = {};
     bildirimler.forEach((b) => {
       say[b.durum] = Number(b.n);
@@ -89,6 +101,8 @@ router.get(
       bekleyen: (say.bekliyor || 0) + (say.manuel || 0),
       hatali: say.hata || 0,
       kbsMod: t.kbs_mod || 'manuel',
+      bugunTahsilat: Math.round(Number(bugunTahsilat.t || 0) * 100) / 100,
+      acikBorc: Math.round(acikBorc * 100) / 100,
       bugunGelecek: gelecek.map((r) => ({
         id: r.id,
         adSoyad: r.ad_soyad || '',

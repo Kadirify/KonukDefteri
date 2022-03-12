@@ -6,7 +6,9 @@ import { useAuth } from '../hooks/useAuth';
 import Sayfa, { Yukleniyor } from '../components/Sayfa';
 import Uyari from '../components/Uyari';
 import { buAy, bugunYerel, trGun, trTarih } from '../utils/tarih';
-import { REZ_KAYNAK } from '../utils/metin';
+import { REZ_KAYNAK, YONTEM } from '../utils/metin';
+import { tl } from '../utils/para';
+import { Link } from 'react-router-dom';
 
 function GunlukListe() {
   const { kullanici } = useAuth();
@@ -286,6 +288,109 @@ function Doluluk() {
   );
 }
 
+function Kasa() {
+  const [baslangic, setBaslangic] = useState(bugunYerel());
+  const [bitis, setBitis] = useState(bugunYerel());
+  const { veri, yukleniyor, hata } = useYukle(
+    () => raporlar.kasa(baslangic, bitis),
+    [baslangic, bitis]
+  );
+
+  return (
+    <>
+      <div className="arac-cubugu yazdirma-gizle">
+        <input
+          type="date"
+          value={baslangic}
+          onChange={(e) => e.target.value && setBaslangic(e.target.value)}
+        />
+        <span className="soluk">-</span>
+        <input
+          type="date"
+          value={bitis}
+          onChange={(e) => e.target.value && setBitis(e.target.value)}
+        />
+        <button
+          type="button"
+          className="dugme"
+          onClick={() => window.print()}
+          style={{ marginLeft: 'auto' }}
+        >
+          Yazdır
+        </button>
+      </div>
+      {hata && <Uyari tur="hata">{hata}</Uyari>}
+      {yukleniyor && !veri ? (
+        <Yukleniyor />
+      ) : (
+        veri && (
+          <>
+            <div className="yazdir-baslik">
+              <h1>
+                Kasa raporu {trGun(veri.baslangic)}
+                {veri.bitis !== veri.baslangic ? ' - ' + trGun(veri.bitis) : ''}
+              </h1>
+            </div>
+            <div className="istatistikler">
+              <div className="istatistik">
+                <small>Toplam tahsilat</small>
+                <b style={{ fontSize: '1.2rem' }}>{tl(veri.toplam)}</b>
+              </div>
+              {Object.keys(YONTEM).map((y) => (
+                <div className="istatistik" key={y}>
+                  <small>{YONTEM[y]}</small>
+                  <b style={{ fontSize: '1.2rem' }}>{tl(veri.yontemler[y] || 0)}</b>
+                </div>
+              ))}
+              <div className={'istatistik' + (veri.acikBorc > 0 ? ' bekle' : '')}>
+                <small>Açık hesaplarda kalan</small>
+                <b style={{ fontSize: '1.2rem' }}>{tl(veri.acikBorc)}</b>
+              </div>
+            </div>
+            <div className="tablo-sarici">
+              <table className="tablo">
+                <thead>
+                  <tr>
+                    <th>Tarih</th>
+                    <th>Konuk</th>
+                    <th>Oda</th>
+                    <th>Yöntem</th>
+                    <th>Alan</th>
+                    <th>Not</th>
+                    <th className="sag">Tutar</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {veri.satirlar.map((t) => (
+                    <tr key={t.id}>
+                      <td className="sayi">{trTarih(t.tarih)}</td>
+                      <td>
+                        <Link to={`/konaklamalar/${t.konaklamaId}#hesap`}>{t.konuk}</Link>
+                      </td>
+                      <td className="mono">{t.odaNo}</td>
+                      <td>{YONTEM[t.yontem] || t.yontem}</td>
+                      <td>{t.alan}</td>
+                      <td className="soluk">{t.notlar}</td>
+                      <td className="sag sayi">{tl(t.tutar)}</td>
+                    </tr>
+                  ))}
+                  {veri.satirlar.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="soluk">
+                        Bu aralıkta tahsilat yok.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )
+      )}
+    </>
+  );
+}
+
 export default function Raporlar() {
   const [sekme, setSekme] = useState('gunluk');
   return (
@@ -312,10 +417,18 @@ export default function Raporlar() {
         >
           Doluluk
         </button>
+        <button
+          type="button"
+          className={sekme === 'kasa' ? 'aktif' : ''}
+          onClick={() => setSekme('kasa')}
+        >
+          Kasa
+        </button>
       </div>
       {sekme === 'gunluk' && <GunlukListe />}
       {sekme === 'aylik' && <AylikOzet />}
       {sekme === 'doluluk' && <Doluluk />}
+      {sekme === 'kasa' && <Kasa />}
     </Sayfa>
   );
 }

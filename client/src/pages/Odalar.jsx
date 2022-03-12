@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  hesaplar as hesapApi,
   katlar as katApi,
   konaklamalar as konaklamaApi,
   odalar as odaApi,
@@ -17,6 +18,7 @@ import OdaFormu from '../components/OdaFormu';
 import { CikisModal, GirisModal, OdaDegistirModal } from './Konaklamalar';
 import { girisDegerinden, girisDegerine, neKadarOldu, saatDakika, trTarih } from '../utils/tarih';
 import { GOREV_TUR, REZ_KAYNAK, TEMIZLIK } from '../utils/metin';
+import { tl } from '../utils/para';
 
 // Kutunun üst kenar rengi: tek bir anlam
 export function kutuSinifi(o) {
@@ -211,6 +213,10 @@ function OdaPaneli({
 
   const ilk = oda.konaklayanlar[0];
   const dolu = oda.doluluk === 'dolu';
+  const hesap = useYukle(
+    () => (dolu && !gizli ? hesapApi.konaklama(ilk.konaklamaId) : Promise.resolve(null)),
+    [dolu ? ilk.konaklamaId : 0, gizli]
+  );
 
   return (
     <aside className="panel">
@@ -278,6 +284,30 @@ function OdaPaneli({
               <span className="soluk">- {neKadarOldu(ilk.girisZamani)} oldu</span>
             </b>
           </div>
+          {hesap.veri && (
+            <div className="panel-satir">
+              <span>Hesap</span>
+              <b>
+                {hesap.veri.bakiye > 0 ? (
+                  <span style={{ color: 'var(--hata)' }}>kalan {tl(hesap.veri.bakiye)}</span>
+                ) : hesap.veri.bakiye < 0 ? (
+                  <span style={{ color: 'var(--uyari)' }}>iade {tl(-hesap.veri.bakiye)}</span>
+                ) : (
+                  <span style={{ color: 'var(--basari)' }}>ödendi</span>
+                )}
+                <span className="soluk" style={{ fontWeight: 400 }}>
+                  {' '}
+                  - toplam {tl(hesap.veri.toplam)}
+                </span>{' '}
+                <Link
+                  to={`/konaklamalar/${ilk.konaklamaId}#hesap`}
+                  className="dugme dugme-sade dugme-kucuk"
+                >
+                  Aç
+                </Link>
+              </b>
+            </div>
+          )}
           <div className="panel-satir">
             <span>Planlanan çıkış</span>
             <b>

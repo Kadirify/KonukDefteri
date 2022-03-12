@@ -8,6 +8,7 @@ import Odalar from './pages/Odalar';
 import Temizlik from './pages/Temizlik';
 import Cizelge from './pages/Cizelge';
 import Rezervasyonlar from './pages/Rezervasyonlar';
+import HesapFisi from './pages/HesapFisi';
 import Konuklar from './pages/Konuklar';
 import KonukDetay from './pages/KonukDetay';
 import KbsKuyrugu from './pages/KbsKuyrugu';
@@ -23,6 +24,7 @@ export default function App() {
         <Route index element={<Pano />} />
         <Route path="konaklamalar" element={<Konaklamalar />} />
         <Route path="konaklamalar/:id" element={<KonaklamaDetay />} />
+        <Route path="hesaplar/:id/fis" element={<HesapFisi />} />
         <Route path="odalar" element={<Odalar />} />
         <Route path="temizlik" element={<Temizlik />} />
         <Route path="cizelge" element={<Cizelge />} />

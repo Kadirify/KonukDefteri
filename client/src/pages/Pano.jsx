@@ -5,6 +5,7 @@ import Sayfa, { Yukleniyor } from '../components/Sayfa';
 import Uyari from '../components/Uyari';
 import { trGun, trTarih } from '../utils/tarih';
 import { islemMetni, KBS_MOD, REZ_KAYNAK } from '../utils/metin';
+import { tl } from '../utils/para';
 
 export default function Pano() {
   const { veri, yukleniyor, hata } = useYukle(() => pano.oku(), []);
@@ -94,6 +95,14 @@ export default function Pano() {
         <div className={'istatistik' + (p.hatali ? ' dikkat' : '')}>
           <small>Hatalı bildirim</small>
           <b>{p.hatali}</b>
+        </div>
+        <div className="istatistik">
+          <small>Bugün tahsilat</small>
+          <b style={{ fontSize: '1.2rem' }}>{tl(p.bugunTahsilat)}</b>
+        </div>
+        <div className={'istatistik' + (p.acikBorc > 0 ? ' bekle' : '')}>
+          <small>Açık hesap bakiyesi</small>
+          <b style={{ fontSize: '1.2rem' }}>{tl(p.acikBorc)}</b>
         </div>
       </div>
 

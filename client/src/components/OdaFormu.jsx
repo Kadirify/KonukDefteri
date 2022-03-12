@@ -19,6 +19,8 @@ export default function OdaFormu({ oda, katlar, varsayilanKat, onKapat, onTamam 
           ozellikler: oda.ozellikler.join(', '),
           notlar: oda.notlar,
           kullanim: oda.kullanim === 'bakimda' ? 'kullanimda' : oda.kullanim,
+          gecelikFiyat: oda.gecelikFiyat || 0,
+          gunubirlikFiyat: oda.gunubirlikFiyat || 0,
         }
       : {
           odaNo: '',
@@ -30,6 +32,8 @@ export default function OdaFormu({ oda, katlar, varsayilanKat, onKapat, onTamam 
           ozellikler: '',
           notlar: '',
           kullanim: 'kullanimda',
+          gecelikFiyat: 0,
+          gunubirlikFiyat: 0,
         },
   });
   const { errors, isSubmitting } = formState;
@@ -45,6 +49,8 @@ export default function OdaFormu({ oda, katlar, varsayilanKat, onKapat, onTamam 
       ozellikler: v.ozellikler,
       notlar: v.notlar,
       kullanim: oda && oda.kullanim === 'bakimda' ? undefined : v.kullanim,
+      gecelikFiyat: Number(v.gecelikFiyat) || 0,
+      gunubirlikFiyat: Number(v.gunubirlikFiyat) || 0,
     };
     if (v.sira !== '' && v.sira !== undefined) veri.sira = Number(v.sira);
     try {
@@ -96,6 +102,15 @@ export default function OdaFormu({ oda, katlar, varsayilanKat, onKapat, onTamam 
           </Alan>
           <Alan etiket="Kattaki sırası" not="Boş bırakılırsa sona eklenir">
             <input type="number" min={0} {...register('sira')} />
+          </Alan>
+          <Alan
+            etiket="Gecelik fiyat (TL)"
+            hata={errors.gecelikFiyat && errors.gecelikFiyat.message}
+          >
+            <input type="number" min={0} step="0.01" {...register('gecelikFiyat')} />
+          </Alan>
+          <Alan etiket="Günübirlik fiyat (TL)" not="Boşsa gecelik fiyat kullanılır">
+            <input type="number" min={0} step="0.01" {...register('gunubirlikFiyat')} />
           </Alan>
           <Alan etiket="Özellikler" genis not="virgülle ayırın">
             <input type="text" {...register('ozellikler')} />

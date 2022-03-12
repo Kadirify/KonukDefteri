@@ -122,6 +122,78 @@ router.get(
   })
 );
 
+// Kasa: tarih aralığındaki tahsilatlar, yönteme ve güne göre toplamlar
+router.get(
+  '/kasa',
+  sar(async (req, res) => {
+    const baslangic = String(req.query.baslangic || bugun());
+    const bitis = String(req.query.bitis || baslangic);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(baslangic) || !/^\d{4}-\d{2}-\d{2}$/.test(bitis)) {
+      throw new HttpHata(400, 'Tarih biçimi YYYY-AA-GG olmalı');
+    }
+    const satirlar = await db('tahsilatlar')
+      .join('hesaplar', 'hesaplar.id', 'tahsilatlar.hesap_id')
+      .join('konaklamalar', 'konaklamalar.id', 'hesaplar.konaklama_id')
+      .join('konuklar', 'konuklar.id', 'konaklamalar.konuk_id')
+      .join('odalar', 'odalar.id', 'konaklamalar.oda_id')
+      .leftJoin('kullanicilar', 'kullanicilar.id', 'tahsilatlar.kullanici_id')
+      .where('tahsilatlar.tarih', '>=', `${baslangic} 00:00`)
+      .where('tahsilatlar.tarih', '<=', `${bitis} 23:59`)
+      .select(
+        'tahsilatlar.*',
+        'hesaplar.id as hesap_id',
+        'konaklamalar.id as konaklama_id',
+        'konuklar.ad',
+        'konuklar.soyad',
+        'odalar.oda_no',
+        'kullanicilar.ad_soyad as alan'
+      )
+      .orderBy('tahsilatlar.tarih');
+    const yontemler = {};
+    const gunler = {};
+    let toplam = 0;
+    satirlar.forEach((t) => {
+      const tutar = Number(t.tutar);
+      toplam += tutar;
+      yontemler[t.yontem] = (yontemler[t.yontem] || 0) + tutar;
+      const gun = t.tarih.slice(0, 10);
+      gunler[gun] = (gunler[gun] || 0) + tutar;
+    });
+    const acikHesaplar = await db('hesaplar')
+      .join('konaklamalar', 'konaklamalar.id', 'hesaplar.konaklama_id')
+      .where('hesaplar.durum', 'acik')
+      .select('hesaplar.id');
+    let acikBorc = 0;
+    for (const h of acikHesaplar) {
+      const k = await db('hesap_kalemleri').where({ hesap_id: h.id }).sum('tutar as t').first();
+      const ta = await db('tahsilatlar').where({ hesap_id: h.id }).sum('tutar as t').first();
+      acikBorc += Number(k.t || 0) - Number(ta.t || 0);
+    }
+    res.json({
+      baslangic,
+      bitis,
+      toplam: Math.round(toplam * 100) / 100,
+      yontemler,
+      gunler: Object.keys(gunler)
+        .sort()
+        .map((g) => ({ gun: g, tutar: Math.round(gunler[g] * 100) / 100 })),
+      acikBorc: Math.round(acikBorc * 100) / 100,
+      satirlar: satirlar.map((t) => ({
+        id: t.id,
+        tarih: t.tarih,
+        tutar: Number(t.tutar),
+        yontem: t.yontem,
+        notlar: t.notlar || '',
+        alan: t.alan || '',
+        hesapId: t.hesap_id,
+        konaklamaId: t.konaklama_id,
+        konuk: `${t.ad} ${t.soyad}`,
+        odaNo: t.oda_no,
+      })),
+    });
+  })
+);
+
 // Aylık doluluk: her gece için kullanımdaki oda sayısı ve dolu oda sayısı
 router.get(
   '/doluluk',

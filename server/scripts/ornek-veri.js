@@ -57,6 +57,14 @@ const odalar = [
   ['Kahvaltı', 'Zemin', '', 1, '', 'ortak'],
 ];
 
+// tipe göre [gecelik, günübirlik] fiyat
+const fiyatlar = {
+  'Tek kişilik': [650, 250],
+  'Çift kişilik': [900, 350],
+  Aile: [1400, 500],
+  'Engelli erişimli': [900, 350],
+};
+
 const konuklar = [
   {
     ad: 'Ayşe',
@@ -168,6 +176,8 @@ async function calistir() {
       kapasite,
       ozellikler,
       tur: tur || 'oda',
+      gecelik_fiyat: (fiyatlar[tip] || [0, 0])[0],
+      gunubirlik_fiyat: (fiyatlar[tip] || [0, 0])[1],
     });
     odaIdleri[odaNo] = id;
   }

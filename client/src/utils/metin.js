@@ -61,6 +61,19 @@ export const REZ_DURUM = {
   gelmedi: { etiket: 'Gelmedi', tur: 'hata' },
 };
 
+export const YONTEM = {
+  nakit: 'Nakit',
+  kart: 'Kart',
+  havale: 'Havale',
+  diger: 'Diğer',
+};
+
+export const KALEM_TUR = {
+  konaklama: 'Konaklama',
+  ekstra: 'Ekstra',
+  indirim: 'İndirim',
+};
+
 export const REZ_KAYNAK = {
   telefon: 'Telefon',
   booking: 'Booking',
@@ -103,6 +116,13 @@ export const ISLEM = {
   rezervasyon_duzenle: 'Rezervasyon düzenledi',
   rezervasyon_iptal: 'Rezervasyonu iptal etti',
   rezervasyon_gelmedi: 'Rezervasyonu gelmedi olarak kapattı',
+  hesap_kalem: 'Hesaba kalem ekledi',
+  hesap_kalem_sil: 'Hesaptan kalem sildi',
+  hesap_kalem_duzelt: 'Hesap kalemini düzeltti',
+  tahsilat: 'Tahsilat aldı',
+  tahsilat_sil: 'Tahsilat sildi',
+  hesap_kapat: 'Hesabı kapattı',
+  hesap_ac: 'Hesabı yeniden açtı',
 };
 
 export function islemMetni(kod) {

@@ -53,6 +53,19 @@ export const rezervasyonlar = {
   gelmedi: (id) => istemci.post(`/rezervasyonlar/${id}/gelmedi`).then(veri),
 };
 
+export const hesaplar = {
+  konaklama: (konaklamaId) => istemci.get(`/hesaplar/konaklama/${konaklamaId}`).then(veri),
+  oku: (id) => istemci.get(`/hesaplar/${id}`).then(veri),
+  fis: (id) => istemci.get(`/hesaplar/${id}/fis`).then(veri),
+  kalemEkle: (id, v) => istemci.post(`/hesaplar/${id}/kalemler`, v).then(veri),
+  kalemDuzelt: (id, kalemId, v) => istemci.put(`/hesaplar/${id}/kalemler/${kalemId}`, v).then(veri),
+  kalemSil: (id, kalemId) => istemci.delete(`/hesaplar/${id}/kalemler/${kalemId}`).then(veri),
+  tahsilatEkle: (id, v) => istemci.post(`/hesaplar/${id}/tahsilatlar`, v).then(veri),
+  tahsilatSil: (id, tid) => istemci.delete(`/hesaplar/${id}/tahsilatlar/${tid}`).then(veri),
+  kapat: (id) => istemci.post(`/hesaplar/${id}/kapat`).then(veri),
+  ac: (id) => istemci.post(`/hesaplar/${id}/ac`).then(veri),
+};
+
 export const cizelge = {
   oku: (gun, gorunum) => istemci.get('/cizelge', { params: { gun, gorunum } }).then(veri),
 };
@@ -96,6 +109,8 @@ export const raporlar = {
     istemci.get('/raporlar/gunluk', { params: { tarih, tam: tam ? '1' : '0' } }).then(veri),
   aylik: (ay) => istemci.get('/raporlar/aylik', { params: { ay } }).then(veri),
   doluluk: (ay) => istemci.get('/raporlar/doluluk', { params: { ay } }).then(veri),
+  kasa: (baslangic, bitis) =>
+    istemci.get('/raporlar/kasa', { params: { baslangic, bitis } }).then(veri),
 };
 
 export const ayarlar = {

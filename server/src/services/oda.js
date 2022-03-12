@@ -81,6 +81,8 @@ function dto(o, konaklayanlar, rezervasyon, gizli) {
       .filter(Boolean),
     sonTemizlik: o.son_temizlik || '',
     notlar: o.notlar || '',
+    gecelikFiyat: Number(o.gecelik_fiyat || 0),
+    gunubirlikFiyat: Number(o.gunubirlik_fiyat || 0),
     aktif: (o.kullanim || 'kullanimda') === 'kullanimda',
     doluluk,
     // eski ekranlar için: kapali | dolu | bos

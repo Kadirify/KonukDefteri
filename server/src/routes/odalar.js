@@ -22,6 +22,8 @@ const sema = Joi.object({
   ozellikler: Joi.string().trim().max(200).allow(''),
   kullanim: Joi.string().valid('kullanimda', 'kapali'),
   notlar: Joi.string().trim().max(200).allow(''),
+  gecelikFiyat: Joi.number().min(0).max(9999999).default(0),
+  gunubirlikFiyat: Joi.number().min(0).max(9999999).default(0),
 });
 
 const temizlikSemasi = Joi.object({
@@ -140,6 +142,8 @@ async function odaKaydet(b) {
     tur: b.tur || 'oda',
     ozellikler: b.ozellikler || '',
     notlar: b.notlar || '',
+    gecelik_fiyat: b.gecelikFiyat || 0,
+    gunubirlik_fiyat: b.gunubirlikFiyat || 0,
   };
 }
 

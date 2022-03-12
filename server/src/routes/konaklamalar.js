@@ -3,6 +3,7 @@ const Joi = require('joi');
 const db = require('../db/knex');
 const konuk = require('../services/konuk');
 const konaklama = require('../services/konaklama');
+const hesap = require('../services/hesap');
 const { dogrula } = require('../middleware/dogrula');
 const { HttpHata } = require('../middleware/hata');
 const { sar } = require('../utils/async');
@@ -101,6 +102,7 @@ function temelSorgu() {
 async function detay(id) {
   const s = await temelSorgu().where('konaklamalar.id', id).first();
   if (!s) throw new HttpHata(404, 'Konaklama bulunamadı');
+  const h = await hesap.hesapBul(s);
   const [bildirimler, odaGecmisi] = await Promise.all([
     db('kbs_bildirimler').where({ konaklama_id: id }).orderBy('id'),
     db('konaklama_odalari')
@@ -111,6 +113,7 @@ async function detay(id) {
   ]);
   return {
     ...listeSatiri(s, null),
+    hesapId: h ? h.id : null,
     bildirimler: bildirimler.map((b) => ({
       id: b.id,
       tur: b.tur,
@@ -206,6 +209,9 @@ router.put(
       throw new HttpHata(400, 'Planlanan çıkış girişten sonra olmalı');
     const hedef = s.grup_kodu ? { grup_kodu: s.grup_kodu, durum: 'konakliyor' } : { id };
     await db('konaklamalar').where(hedef).update({ planlanan_cikis: req.body.planlananCikis });
+    await db.transaction(async (trx) => {
+      await hesap.yenidenHesapla(trx, id, req.kullanici.id);
+    });
     res.json(await detay(id));
   })
 );

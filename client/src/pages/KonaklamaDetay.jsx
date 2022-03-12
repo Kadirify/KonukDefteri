@@ -8,6 +8,7 @@ import Uyari from '../components/Uyari';
 import Alan from '../components/Alan';
 import Rozet, { BildirimRozeti } from '../components/Rozet';
 import BildirimIslemleri from '../components/BildirimIslemleri';
+import HesapKarti from '../components/HesapKarti';
 import { CikisModal, OdaDegistirModal } from './Konaklamalar';
 import { girisDegerinden, girisDegerine, trTarih } from '../utils/tarih';
 import { BILDIRIM_TUR, kimlikMetni, konukAdi, KONAKLAMA_TUR } from '../utils/metin';
@@ -139,6 +140,8 @@ export default function KonaklamaDetay() {
           </div>
         )}
       </div>
+
+      <HesapKarti konaklamaId={s.id} baslikId="hesap" />
 
       <div className="kart">
         <div className="kart-baslik">

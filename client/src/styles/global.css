@@ -1323,6 +1323,36 @@ textarea:focus {
   }
 }
 
+/* hesap ve fiş */
+
+.kucuk-girdi {
+  padding: 4px 8px;
+  border: 1px solid var(--cizgi-koyu);
+  border-radius: var(--yaricap);
+  background: var(--yuzey);
+  color: var(--metin);
+  font-size: 0.86rem;
+  max-width: 100%;
+}
+
+.tablo tfoot td {
+  background: var(--yuzey-2);
+  border-top: 2px solid var(--cizgi);
+}
+
+.fis {
+  max-width: 720px;
+}
+
+.fis-ust {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--cizgi);
+}
+
 /* dar ekran */
 
 @media (max-width: 900px) {

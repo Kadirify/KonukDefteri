@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ayarlar as ayarApi,
+  hesaplar as hesapApi,
   konaklamalar,
   konuklar as konukApi,
   odalar as odaApi,
@@ -24,7 +25,8 @@ import {
   simdiYerel,
   trTarih,
 } from '../utils/tarih';
-import { BILDIRIM_TUR, kimlikMetni, konukAdi, TEMIZLIK } from '../utils/metin';
+import { BILDIRIM_TUR, kimlikMetni, konukAdi, TEMIZLIK, YONTEM } from '../utils/metin';
+import { tl, sayiOku } from '../utils/para';
 
 export function odaEtiketi(o) {
   const dolu = o.konaklayanlar.length;
@@ -320,11 +322,14 @@ export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda, rezervasyo
   );
 }
 
+// Çıkış iki adım: önce çıkış kaydı (gece sayısı kesinleşir), sonra hesap
 export function CikisModal({ konaklama, onKapat, onTamam }) {
   const [cikisZamani, setCikisZamani] = useState(girisDegerine(simdiYerel()));
   const [grupHepsi, setGrupHepsi] = useState(!!konaklama.grupKodu);
   const [hata, setHata] = useState('');
   const [mesgul, setMesgul] = useState(false);
+  const [hesap, setHesap] = useState(null);
+  const [tahsilat, setTahsilat] = useState({ tutar: '', yontem: 'nakit' });
 
   const kaydet = async () => {
     setMesgul(true);
@@ -334,6 +339,29 @@ export function CikisModal({ konaklama, onKapat, onTamam }) {
         cikisZamani: girisDegerinden(cikisZamani),
         grupHepsi,
       });
+      const h = await hesapApi.konaklama(konaklama.id);
+      if (h.durum !== 'acik' || (h.bakiye === 0 && h.kalemler.length <= 1 && h.toplam === 0)) {
+        onTamam();
+        return;
+      }
+      setHesap(h);
+      setTahsilat({ tutar: h.bakiye > 0 ? String(h.bakiye) : '', yontem: 'nakit' });
+    } catch (e) {
+      setHata(hataMesaji(e));
+    } finally {
+      setMesgul(false);
+    }
+  };
+
+  const hesabiKapat = async (tahsilAl) => {
+    setMesgul(true);
+    setHata('');
+    try {
+      const tutar = sayiOku(tahsilat.tutar);
+      if (tahsilAl && tutar > 0) {
+        await hesapApi.tahsilatEkle(hesap.id, { tutar, yontem: tahsilat.yontem });
+      }
+      await hesapApi.kapat(hesap.id);
       onTamam();
     } catch (e) {
       setHata(hataMesaji(e));
@@ -341,6 +369,71 @@ export function CikisModal({ konaklama, onKapat, onTamam }) {
       setMesgul(false);
     }
   };
+
+  if (hesap) {
+    return (
+      <Modal baslik="Hesap" onKapat={onTamam}>
+        <p>
+          <b>{konukAdi(konaklama)}</b> çıkış yapıldı. Hesap toplamı <b>{tl(hesap.toplam)}</b>,
+          tahsil edilen <b>{tl(hesap.tahsilat)}</b>.
+        </p>
+        <p style={{ fontSize: '1.1rem' }}>
+          {hesap.bakiye > 0 ? (
+            <>
+              Kalan: <b style={{ color: 'var(--hata)' }}>{tl(hesap.bakiye)}</b>
+            </>
+          ) : hesap.bakiye < 0 ? (
+            <>
+              İade edilecek: <b style={{ color: 'var(--uyari)' }}>{tl(-hesap.bakiye)}</b>
+            </>
+          ) : (
+            <b style={{ color: 'var(--basari)' }}>Bakiye yok</b>
+          )}
+        </p>
+        {hesap.bakiye > 0 && (
+          <div className="izgara">
+            <Alan etiket="Tahsil edilen tutar (TL)">
+              <input
+                type="text"
+                value={tahsilat.tutar}
+                onChange={(e) => setTahsilat({ ...tahsilat, tutar: e.target.value })}
+                className="sag"
+              />
+            </Alan>
+            <Alan etiket="Yöntem">
+              <select
+                value={tahsilat.yontem}
+                onChange={(e) => setTahsilat({ ...tahsilat, yontem: e.target.value })}
+              >
+                {Object.keys(YONTEM).map((y) => (
+                  <option key={y} value={y}>
+                    {YONTEM[y]}
+                  </option>
+                ))}
+              </select>
+            </Alan>
+          </div>
+        )}
+        {hata && <div className="form-hata">{hata}</div>}
+        <div className="form-alt">
+          <Link to={`/konaklamalar/${konaklama.id}#hesap`} className="dugme">
+            Hesabı aç
+          </Link>
+          <button type="button" className="dugme" onClick={onTamam}>
+            Sonra
+          </button>
+          <button
+            type="button"
+            className="dugme dugme-birincil"
+            onClick={() => hesabiKapat(true)}
+            disabled={mesgul}
+          >
+            {hesap.bakiye > 0 ? 'Tahsil et ve kapat' : 'Hesabı kapat'}
+          </button>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal baslik="Çıkış kaydı" onKapat={onKapat}>

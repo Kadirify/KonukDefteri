@@ -6,6 +6,7 @@ const kbs = require('./kbs');
 const kuyruk = require('./kbs/kuyruk');
 const oda = require('./oda');
 const temizlik = require('./temizlik');
+const hesap = require('./hesap');
 const gunluk = require('./gunluk');
 const { HttpHata } = require('../middleware/hata');
 const { simdi, saatEkle, gunEkle } = require('../utils/tarih');
@@ -117,6 +118,9 @@ async function girisYap(req, b) {
         .where({ id: rezervasyon.id })
         .update({ durum: 'geldi', konaklama_id: olusanlar[0], oda_id: odaSatiri.id });
     }
+    // Grup için tek hesap, ilk konaklamaya bağlı
+    const lider = await trx('konaklamalar').where({ id: olusanlar[0] }).first();
+    await hesap.hesapAc(trx, lider, odaSatiri, req.kullanici.id);
   });
 
   gunluk.kaydet(req, 'giris_kaydi', 'konaklama:' + olusanlar.join(','), {
@@ -155,6 +159,8 @@ async function cikisYap(req, id, b) {
       await kbs.bildirimOlustur(trx, h.id, 'cikis', baglanti.mod);
       bosalanOdalar.add(h.oda_id);
     }
+    // Gerçek gece sayısına göre konaklama kalemi
+    await hesap.yenidenHesapla(trx, s.id, req.kullanici.id);
     for (const odaId of bosalanOdalar) {
       const kalan = await trx('konaklamalar')
         .where({ oda_id: odaId, durum: 'konakliyor' })
@@ -197,6 +203,7 @@ async function odaDegistir(req, id, odaId) {
       .count('id as n')
       .first();
     if (Number(kalan.n) === 0) await temizlik.odaKirliYap(trx, eskiOda, req, 'cikis');
+    await hesap.yenidenHesapla(trx, id, req.kullanici.id);
   });
   gunluk.kaydet(req, 'oda_degisikligi', 'konaklama:' + id, { yeniOda: hedef.oda_no });
   kuyruk.tetikle();
