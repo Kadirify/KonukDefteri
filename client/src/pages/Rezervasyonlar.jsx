@@ -8,11 +8,13 @@ import Uyari from '../components/Uyari';
 import Modal from '../components/Modal';
 import Alan from '../components/Alan';
 import Rozet from '../components/Rozet';
+import Tahta from '../components/Tahta';
 import { GirisModal } from './Konaklamalar';
 import { bugunYerel, gunEkleYerel, trGun } from '../utils/tarih';
 import { kimlikMetni, konukAdi, REZ_DURUM, REZ_KAYNAK } from '../utils/metin';
 
-function RezervasyonFormu({ rez, odalar, onKapat, onTamam }) {
+// ilk: tahtadan gelen ön değerler (oda, giriş günü)
+function RezervasyonFormu({ rez, ilk, odalar, onKapat, onTamam }) {
   const [v, setV] = useState(
     rez
       ? { ...rez, odaId: rez.odaId ? String(rez.odaId) : '' }
@@ -27,6 +29,7 @@ function RezervasyonFormu({ rez, odalar, onKapat, onTamam }) {
           kaynak: 'telefon',
           durum: 'onayli',
           notlar: '',
+          ...ilk,
         }
   );
   const [q, setQ] = useState('');
@@ -199,19 +202,38 @@ function RezervasyonFormu({ rez, odalar, onKapat, onTamam }) {
 
 export default function Rezervasyonlar() {
   const [aralik, setAralik] = useState('gelecek');
-  const liste = useYukle(() => rezApi.liste(aralik), [aralik]);
+  const liste = useYukle(
+    () => (aralik === 'tahta' ? Promise.resolve([]) : rezApi.liste(aralik)),
+    [aralik]
+  );
   const odalar = useYukle(() => odaApi.liste(), [liste.veri]);
   const [form, setForm] = useState(null);
   const [giris, setGiris] = useState(null);
   const [mesaj, setMesaj] = useState('');
   const [hata, setHata] = useState('');
+  const [sayac, setSayac] = useState(0);
 
   const tamam = (m) => {
     setMesaj(m);
     setForm(null);
     setGiris(null);
     liste.yenile();
+    setSayac((s) => s + 1);
   };
+
+  // tahtada boş güne tıklandı: oda ve giriş günü dolu gelsin
+  const bosGun = (odaId, tarih) =>
+    setForm({
+      odaId: String(odaId),
+      girisTarihi: tarih,
+      cikisTarihi: gunEkleYerel(tarih, 1).slice(0, 10),
+    });
+
+  const rezAc = (id) =>
+    rezApi
+      .oku(id)
+      .then(setForm)
+      .catch((e) => setHata(hataMesaji(e)));
 
   const kapat = async (r, tur) => {
     const soru =
@@ -261,6 +283,7 @@ export default function Rezervasyonlar() {
           ['hafta', 'Bu hafta'],
           ['gelecek', 'Gelecek'],
           ['hepsi', 'Hepsi'],
+          ['tahta', 'Tahta'],
         ].map(([k, ad]) => (
           <button
             type="button"
@@ -272,7 +295,9 @@ export default function Rezervasyonlar() {
           </button>
         ))}
       </div>
-      {liste.yukleniyor && !liste.veri ? (
+      {aralik === 'tahta' ? (
+        <Tahta yenileSayaci={sayac} onBosGun={bosGun} onRezervasyon={rezAc} />
+      ) : liste.yukleniyor && !liste.veri ? (
         <Yukleniyor />
       ) : (
         <div className="tablo-sarici">
@@ -381,6 +406,7 @@ export default function Rezervasyonlar() {
       {form && odalar.veri && (
         <RezervasyonFormu
           rez={form.id ? form : null}
+          ilk={form.id ? null : form}
           odalar={odalar.veri}
           onKapat={() => setForm(null)}
           onTamam={() => tamam('Rezervasyon kaydedildi.')}

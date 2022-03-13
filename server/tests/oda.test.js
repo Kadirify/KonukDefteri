@@ -197,6 +197,13 @@ describe('rezervasyon ve çizelge', () => {
       .get(`/api/cizelge?gun=${gun(0)}&gorunum=hafta`)
       .set('Cookie', cerez);
     expect(hafta.body.bloklar.some((b) => b.tur === 'rezervasyon')).toBe(true);
+    const ay = await request(app)
+      .get(`/api/cizelge?gun=${gun(0)}&gorunum=ay`)
+      .set('Cookie', cerez);
+    expect(ay.body.baslangic).toBe(`${gun(0).slice(0, 7)}-01 00:00`);
+    expect(ay.body.bitis > ay.body.baslangic).toBe(true);
+    expect(ay.body.bloklar.some((b) => b.tur === 'konaklama' && b.odaId === odaId2)).toBe(true);
+    expect(ay.body.bloklar.some((b) => b.tur === 'temizlik')).toBe(false);
   });
 
   test('pano yeni sayıları döner', async () => {

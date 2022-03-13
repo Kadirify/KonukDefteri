@@ -1323,6 +1323,112 @@ textarea:focus {
   }
 }
 
+/* rezervasyon tahtası */
+
+.tahta-kaydir {
+  overflow-x: auto;
+  background: var(--yuzey);
+  border: 1px solid var(--cizgi);
+  border-radius: var(--yaricap);
+  box-shadow: var(--golge);
+  padding: 10px 12px;
+}
+
+.tahta-satir {
+  display: grid;
+  grid-template-columns: 90px minmax(620px, 1fr);
+  gap: 6px;
+  align-items: stretch;
+}
+
+.tahta-oda {
+  font-family: var(--mono);
+  font-size: 0.84rem;
+  padding: 6px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.tahta-oda small {
+  font-family: var(--yazi);
+  color: var(--metin-soluk);
+  font-size: 0.7rem;
+}
+
+.tahta-kat {
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 10px 0 4px;
+  border-top: 1px solid var(--cizgi);
+  margin-top: 6px;
+}
+
+.tahta-pist {
+  position: relative;
+  display: grid;
+  min-height: 34px;
+}
+
+.tahta-gun {
+  border: 0;
+  border-right: 1px solid var(--cizgi);
+  border-bottom: 1px solid var(--cizgi);
+  background: var(--yuzey);
+  padding: 0;
+  min-height: 34px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.tahta-gun:hover {
+  background: var(--renk-ana-acik);
+}
+
+.tahta-gun:disabled {
+  cursor: default;
+  background: var(--yuzey-2);
+}
+
+.tahta-gun.hafta-sonu {
+  background: var(--yuzey-2);
+}
+
+.tahta-gun.bugun {
+  box-shadow: inset 0 0 0 2px var(--renk-vurgu);
+}
+
+.tahta-baslik .tahta-gun {
+  cursor: default;
+  min-height: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.74rem;
+  line-height: 1.1;
+}
+
+.tahta-baslik .tahta-gun small {
+  color: var(--metin-soluk);
+  font-size: 0.64rem;
+}
+
+.tahta-bloklar {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tahta-bloklar .blok {
+  pointer-events: auto;
+  top: 5px;
+  bottom: 5px;
+  line-height: 22px;
+  font-size: 0.7rem;
+}
+
 /* hesap ve fiş */
 
 .kucuk-girdi {

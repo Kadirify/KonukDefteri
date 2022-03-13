@@ -4,20 +4,27 @@ const tesis = require('../services/tesis');
 const { odaSirala } = require('../services/oda');
 const { HttpHata } = require('../middleware/hata');
 const { sar } = require('../utils/async');
-const { bugun, gunEkle, simdi } = require('../utils/tarih');
+const { bugun, gunEkle, simdi, tarihten } = require('../utils/tarih');
 
 const router = express.Router();
 
-// GET /api/cizelge?gun=YYYY-MM-DD&gorunum=gun|hafta
+// GET /api/cizelge?gun=YYYY-MM-DD&gorunum=gun|hafta|ay
 // Odalar kat kat; bloklar: konaklama, gunubirlik, temizlik, bakim, rezervasyon
+// Ay görünümü rezervasyon tahtası için: verilen günün ayı baştan sona, temizlik blokları yok
 router.get(
   '/',
   sar(async (req, res) => {
     const gun = String(req.query.gun || bugun());
     if (!/^\d{4}-\d{2}-\d{2}$/.test(gun)) throw new HttpHata(400, 'Tarih biçimi YYYY-AA-GG olmalı');
-    const gorunum = req.query.gorunum === 'hafta' ? 'hafta' : 'gun';
-    const baslangic = `${gun} 00:00`;
-    const bitis = gorunum === 'hafta' ? gunEkle(baslangic, 7) : gunEkle(baslangic, 1);
+    const gorunum = ['hafta', 'ay'].includes(req.query.gorunum) ? req.query.gorunum : 'gun';
+    let baslangic = `${gun} 00:00`;
+    let bitis = gunEkle(baslangic, gorunum === 'hafta' ? 7 : 1);
+    if (gorunum === 'ay') {
+      baslangic = `${gun.slice(0, 7)}-01 00:00`;
+      const d = tarihten(baslangic);
+      d.setMonth(d.getMonth() + 1);
+      bitis = simdi(d);
+    }
     const gizli = req.kullanici.rol === 'kat_gorevlisi';
     const an = simdi();
     const ayarlar = await tesis.ayarlar();
@@ -66,13 +73,15 @@ router.get(
           'konuklar.ad',
           'konuklar.soyad'
         ),
-      db('temizlik_gorevleri')
-        .where((w) => {
-          w.where('temizlik_gorevleri.olusturma', '<', bitis);
-        })
-        .where((w) => {
-          w.whereNull('bitis').orWhere('bitis', '>', baslangic);
-        }),
+      gorunum === 'ay'
+        ? []
+        : db('temizlik_gorevleri')
+            .where((w) => {
+              w.where('temizlik_gorevleri.olusturma', '<', bitis);
+            })
+            .where((w) => {
+              w.whereNull('bitis').orWhere('bitis', '>', baslangic);
+            }),
       db('oda_olaylari').whereIn('tur', ['bakim_basladi', 'bakim_bitti']).orderBy(['oda_id', 'id']),
       db('rezervasyonlar')
         .whereIn('durum', ['bekliyor', 'onayli'])
