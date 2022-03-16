@@ -49,6 +49,9 @@ export default function KonaklamaDetay() {
       }`}
       eylemler={
         <>
+          <Link to={`/konaklamalar/${s.id}/form`} className="dugme">
+            Kayıt formu
+          </Link>
           {s.durum === 'konakliyor' && (
             <>
               <button type="button" className="dugme" onClick={() => setTasi(true)}>

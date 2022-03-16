@@ -4,6 +4,7 @@ import Giris from './pages/Giris';
 import Pano from './pages/Pano';
 import Konaklamalar from './pages/Konaklamalar';
 import KonaklamaDetay from './pages/KonaklamaDetay';
+import KayitFormu from './pages/KayitFormu';
 import Odalar from './pages/Odalar';
 import Temizlik from './pages/Temizlik';
 import Cizelge from './pages/Cizelge';
@@ -24,6 +25,7 @@ export default function App() {
         <Route index element={<Pano />} />
         <Route path="konaklamalar" element={<Konaklamalar />} />
         <Route path="konaklamalar/:id" element={<KonaklamaDetay />} />
+        <Route path="konaklamalar/:id/form" element={<KayitFormu />} />
         <Route path="hesaplar/:id/fis" element={<HesapFisi />} />
         <Route path="odalar" element={<Odalar />} />
         <Route path="temizlik" element={<Temizlik />} />

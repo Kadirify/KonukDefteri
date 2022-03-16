@@ -85,6 +85,7 @@ export const konaklamalar = {
   odaDegistir: (id, odaId) => istemci.put(`/konaklamalar/${id}/oda`, { odaId }).then(veri),
   plan: (id, planlananCikis) =>
     istemci.put(`/konaklamalar/${id}/plan`, { planlananCikis }).then(veri),
+  form: (id) => istemci.get(`/konaklamalar/${id}/form`).then(veri),
 };
 
 export const kbs = {

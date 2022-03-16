@@ -26,6 +26,23 @@ async function ayar(anahtar, varsayilan, baglanti = db) {
   return satir ? satir.deger : varsayilan;
 }
 
+// Kayıt formunun altına basılan aydınlatma metni; Ayarlar > Genel'den değiştirilebilir
+const KVKK_METNI = [
+  'Tesisimiz, 1774 sayılı Kimlik Bildirme Kanunu gereği konaklayan her misafirin kimlik ' +
+    'bilgilerini kayıt altına almak ve genel kolluk kuvvetlerine (Kimlik Bildirim Sistemi) ' +
+    'bildirmekle yükümlüdür.',
+  'Bu kapsamda alınan ad, soyad, T.C. kimlik / pasaport numarası, uyruk, doğum tarihi, anne ve ' +
+    'baba adı, telefon ve araç plakası bilgileri, 6698 sayılı Kişisel Verilerin Korunması ' +
+    'Kanunu\'nun 5. maddesindeki "kanunlarda açıkça öngörülmesi" ve "hukuki yükümlülüğün yerine ' +
+    'getirilmesi" şartlarına dayanılarak işlenir.',
+  'Kimlik bilgileri yalnızca kolluk kuvvetleriyle, kanunun öngördüğü biçimde paylaşılır; başka ' +
+    'bir kişi ya da kurumla paylaşılmaz, pazarlama amacıyla kullanılmaz. Kayıtlar tesisin kayıt ' +
+    'sisteminde şifreli olarak saklanır ve yasal saklama süresi dolunca silinir.',
+  'Kanunun 11. maddesi uyarınca verilerinizin işlenip işlenmediğini öğrenme, düzeltilmesini ya ' +
+    'da silinmesini isteme haklarınız vardır; başvurunuzu tesis yönetimine yazılı olarak ' +
+    'iletebilirsiniz.',
+].join('\n\n');
+
 const VARSAYILAN_AYARLAR = {
   giris_saati: '14:00',
   cikis_saati: '11:00',
@@ -35,6 +52,7 @@ const VARSAYILAN_AYARLAR = {
   gunubirlik_saat: '6',
   kuyruk_dakika: '2',
   saklama_yil: '5',
+  kvkk_metni: KVKK_METNI,
 };
 
 async function ayarlar() {

@@ -599,6 +599,7 @@ function Genel() {
         temizlik_kontrolu: veri.temizlik_kontrolu === '1',
         gunubirlik_izinli: veri.gunubirlik_izinli === '1',
         gunubirlik_saat: veri.gunubirlik_saat,
+        kvkk_metni: veri.kvkk_metni || '',
       });
     }
   }, [veri, reset]);
@@ -616,6 +617,7 @@ function Genel() {
         temizlik_kontrolu: v.temizlik_kontrolu ? '1' : '0',
         gunubirlik_izinli: v.gunubirlik_izinli ? '1' : '0',
         gunubirlik_saat: Number(v.gunubirlik_saat),
+        kvkk_metni: v.kvkk_metni,
       });
       setMesaj('Kaydedildi. Kuyruk aralığı sunucu yeniden başlayınca geçerli olur.');
     } catch (e) {
@@ -712,6 +714,18 @@ function Genel() {
                 <input type="number" min={1} max={10} {...register('saklama_yil')} />
               </Alan>
             </div>
+          </div>
+          <div className="kart">
+            <div className="kart-baslik">
+              <h2>Kayıt formu</h2>
+            </div>
+            <Alan
+              etiket="KVKK aydınlatma metni"
+              not="Kayıt formunun altına basılır"
+              hata={errors.kvkk_metni && errors.kvkk_metni.message}
+            >
+              <textarea rows={10} maxLength={4000} {...register('kvkk_metni')} />
+            </Alan>
           </div>
           {genelHata && <div className="form-hata">{genelHata}</div>}
           {yonetici && (

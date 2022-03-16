@@ -94,6 +94,7 @@ export const ISLEM = {
   konuk_ekle: 'Konuk kartı açtı',
   konuk_duzenle: 'Konuk kartını düzenledi',
   tc_goruntule: 'TC numarasını görüntüledi',
+  kayit_formu: 'Kayıt formunu açtı (kimlik numaraları açık)',
   giris_kaydi: 'Giriş kaydı yaptı',
   cikis_kaydi: 'Çıkış kaydı yaptı',
   oda_degisikligi: 'Oda değiştirdi',

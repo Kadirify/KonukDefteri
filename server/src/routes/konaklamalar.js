@@ -4,6 +4,9 @@ const db = require('../db/knex');
 const konuk = require('../services/konuk');
 const konaklama = require('../services/konaklama');
 const hesap = require('../services/hesap');
+const tesis = require('../services/tesis');
+const gunluk = require('../services/gunluk');
+const { yetki } = require('../middleware/auth');
 const { dogrula } = require('../middleware/dogrula');
 const { HttpHata } = require('../middleware/hata');
 const { sar } = require('../utils/async');
@@ -159,6 +162,41 @@ router.get(
   '/:id',
   sar(async (req, res) => {
     res.json(await detay(Number(req.params.id)));
+  })
+);
+
+// Yazdırılacak kayıt formu: gruptaki herkes, kimlik numaraları açık. Görüntüleme günlüğe yazılır.
+router.get(
+  '/:id/form',
+  yetki('yonetici', 'resepsiyon'),
+  sar(async (req, res) => {
+    const id = Number(req.params.id);
+    const s = await db('konaklamalar').where({ id }).first();
+    if (!s) throw new HttpHata(404, 'Konaklama bulunamadı');
+    let q = temelSorgu().orderBy('konaklamalar.id');
+    q = s.grup_kodu
+      ? q.where('konaklamalar.grup_kodu', s.grup_kodu)
+      : q.where('konaklamalar.id', id);
+    const uyeler = await q;
+    const lider = uyeler.find((u) => u.id === id) || uyeler[0];
+    const [t, ayarlar] = await Promise.all([tesis.oku(), tesis.ayarlar()]);
+    await gunluk.kaydet(req, 'kayit_formu', 'konaklama:' + id, { konuk: uyeler.length });
+    res.json({
+      id,
+      tesis: {
+        ad: t.ad || '',
+        adres: t.adres || '',
+        il: t.il || '',
+        ilce: t.ilce || '',
+        telefon: t.telefon || '',
+      },
+      konaklama: listeSatiri(lider, null),
+      konuklar: uyeler.map((u) => ({
+        ...konuk.dto({ ...u, id: u.konuk_id }, true),
+        konaklamaId: u.id,
+      })),
+      kvkkMetni: ayarlar.kvkk_metni || '',
+    });
   })
 );
 

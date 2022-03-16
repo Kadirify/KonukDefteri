@@ -126,6 +126,18 @@ describe('konaklama akışı (manuel mod)', () => {
     expect(r.body.odaNo).toBe('101');
   });
 
+  test('kayıt formu kimlik numarasını açık verir ve günlüğe yazar', async () => {
+    const r = await (await istek())
+      .get(`/api/konaklamalar/${konaklamaId}/form`)
+      .set('Cookie', cerez);
+    expect(r.status).toBe(200);
+    expect(r.body.konuklar[0].tc).toBe('10000000146');
+    expect(r.body.konaklama.odaNo).toBe('101');
+    expect(r.body.kvkkMetni).toContain('1774');
+    const kayit = await db('islem_gunlugu').where({ islem: 'kayit_formu' }).first();
+    expect(kayit.hedef).toBe('konaklama:' + konaklamaId);
+  });
+
   test('manuel tamamlama bildirimi kapatır', async () => {
     const bildirimler = await db('kbs_bildirimler').where({ konaklama_id: konaklamaId });
     const r = await (await istek())

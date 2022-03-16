@@ -1323,6 +1323,32 @@ textarea:focus {
   }
 }
 
+/* kayıt formu */
+
+.kvkk-metin {
+  white-space: pre-line;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--metin);
+  margin-top: 8px;
+}
+
+.kvkk-onay {
+  margin-top: 14px;
+  font-size: 0.86rem;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.kvkk-onay .kutu {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--metin);
+  margin-top: 2px;
+}
+
 /* rezervasyon tahtası */
 
 .tahta-kaydir {
