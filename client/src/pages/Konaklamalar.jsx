@@ -8,7 +8,7 @@ import {
   odalar as odaApi,
   rezervasyonlar as rezApi,
 } from '../api';
-import { hataMesaji } from '../api/istemci';
+import { hataAlanlari, hataMesaji } from '../api/istemci';
 import useYukle from '../hooks/useYukle';
 import { useAuth } from '../hooks/useAuth';
 import Sayfa, { BosDurum, Yukleniyor } from '../components/Sayfa';
@@ -66,6 +66,7 @@ export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda, rezervasyo
   const [sonuclar, setSonuclar] = useState([]);
   const [yeniAcik, setYeniAcik] = useState(false);
   const [hata, setHata] = useState('');
+  const [sunucuEngeli, setSunucuEngeli] = useState('');
   const [mesgul, setMesgul] = useState(false);
 
   useEffect(() => {
@@ -114,6 +115,17 @@ export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda, rezervasyo
   const temizDegil = !!(seciliOda && seciliOda.temizlik !== 'temiz');
   const gunubirlikIzinli = !ayarlar.veri || ayarlar.veri.gunubirlik_izinli !== '0';
 
+  // Girişi durduran şeyler; yönetici "yine de kaydet" diyebilir
+  const engeller = [];
+  if (temizDegil) engeller.push(`oda ${TEMIZLIK[seciliOda.temizlik].etiket.toLowerCase()}`);
+  secilenler
+    .filter((s) => s.tip === 'kayitli' && s.konuk.karaListe)
+    .forEach((s) => {
+      const neden = s.konuk.karaListeNeden ? ` (${s.konuk.karaListeNeden})` : '';
+      engeller.push(`${konukAdi(s.konuk)} kara listede${neden}`);
+    });
+  if (sunucuEngeli) engeller.push(sunucuEngeli);
+
   const ekleKayitli = (k) => {
     if (secilenler.some((s) => s.tip === 'kayitli' && s.konuk.id === k.id)) return;
     setSecilenler((l) => [...l, { tip: 'kayitli', konuk: k }]);
@@ -132,8 +144,8 @@ export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda, rezervasyo
     setHata('');
     if (!odaId) return setHata('Oda seçin');
     if (!secilenler.length) return setHata('En az bir konuk ekleyin');
-    if (temizDegil && !zorla)
-      return setHata('Oda temiz değil. Yönetici "yine de yerleştir" seçebilir.');
+    if (engeller.length && !zorla)
+      return setHata(`${engeller.join('; ')}. Yönetici "yine de kaydet" seçebilir.`);
     setMesgul(true);
     const konuklar = secilenler.map((s) =>
       s.tip === 'kayitli' ? { konukId: s.konuk.id } : { konuk: s.konuk }
@@ -161,6 +173,8 @@ export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda, rezervasyo
         onTamam(sonuc);
       }
     } catch (e) {
+      // yeni girilen kart kara listedeki bir kayıtla eşleşti: kutu çıksın
+      if (hataAlanlari(e).karaListe) setSunucuEngeli(hataMesaji(e));
       setHata(hataMesaji(e));
     } finally {
       setMesgul(false);
@@ -243,15 +257,19 @@ export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda, rezervasyo
           />
         </Alan>
       </div>
-      {temizDegil && yonetici && (
-        <label className="secenekler" style={{ marginTop: 12 }}>
-          <input type="checkbox" checked={zorla} onChange={(e) => setZorla(e.target.checked)} />
-          <span>
-            Oda <b>{TEMIZLIK[seciliOda.temizlik].etiket.toLowerCase()}</b>; yine de yerleştir
-            (günlüğe yazılır)
-          </span>
-        </label>
-      )}
+      {engeller.length > 0 &&
+        (yonetici ? (
+          <label className="secenekler" style={{ marginTop: 12 }}>
+            <input type="checkbox" checked={zorla} onChange={(e) => setZorla(e.target.checked)} />
+            <span>
+              <b>{engeller.join('; ')}</b>; yine de kaydet (günlüğe yazılır)
+            </span>
+          </label>
+        ) : (
+          <div className="form-hata" style={{ marginTop: 12 }}>
+            {engeller.join('; ')}. Yönetici onayı gerekir.
+          </div>
+        ))}
 
       <div className="konuk-secimi" style={{ marginTop: 16 }}>
         <div className="baslik">
@@ -272,6 +290,12 @@ export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda, rezervasyo
                   : s.konuk.pasaportNo}
               </span>
               {s.tip === 'yeni' && <Rozet tur="bilgi">yeni</Rozet>}
+              {s.tip === 'kayitli' && s.konuk.karaListe && <Rozet tur="hata">kara liste</Rozet>}
+              {s.tip === 'kayitli' && s.konuk.notlar && (
+                <div className="soluk" style={{ fontSize: '0.8rem' }}>
+                  {s.konuk.notlar}
+                </div>
+              )}
             </span>
             <button type="button" className="dugme dugme-sade dugme-kucuk" onClick={() => cikar(i)}>
               Kaldır
@@ -293,6 +317,12 @@ export function GirisModal({ odalar, onKapat, onTamam, varsayilanOda, rezervasyo
               <button type="button" key={k.id} onClick={() => ekleKayitli(k)}>
                 {konukAdi(k)} <span className="soluk mono">{kimlikMetni(k)}</span>
                 {k.dogumTarihi && <span className="soluk"> - {trTarih(k.dogumTarihi)}</span>}
+                {k.karaListe && (
+                  <>
+                    {' '}
+                    <Rozet tur="hata">kara liste</Rozet>
+                  </>
+                )}
               </button>
             ))}
           </div>

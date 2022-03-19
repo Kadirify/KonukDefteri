@@ -86,6 +86,9 @@ function listeSatiri(s, bildirim) {
     plaka: s.plaka || '',
     durum: s.durum,
     bildirim: bildirim || null,
+    konukNotu: s.notlar || '',
+    karaListe: !!s.kara_liste,
+    karaListeNeden: s.kara_liste_neden || '',
   };
 }
 

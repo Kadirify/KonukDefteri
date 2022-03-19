@@ -70,7 +70,19 @@ export default function KonaklamaDetay() {
           <div>
             <span>Konuk</span>
             <Link to={`/konuklar/${s.konukId}`}>{konukAdi(s)}</Link>
+            {s.karaListe && (
+              <>
+                {' '}
+                <Rozet tur="hata">kara liste</Rozet>
+              </>
+            )}
           </div>
+          {s.konukNotu && (
+            <div>
+              <span>Konuk notu</span>
+              {s.konukNotu}
+            </div>
+          )}
           <div>
             <span>Kimlik</span>
             <span className="mono">{kimlikMetni(s)}</span>

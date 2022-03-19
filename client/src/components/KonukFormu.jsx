@@ -36,6 +36,7 @@ export default function KonukFormu({
     defaultValues: { ...bosKonuk, ...(varsayilan || {}) },
   });
   const kimlikTuru = watch('kimlikTuru');
+  const karaListe = watch('karaListe');
   const { errors, isSubmitting } = formState;
 
   const gonder = async (v) => {
@@ -146,6 +147,25 @@ export default function KonukFormu({
             </span>
           </label>
         </div>
+        {duzenleme && (
+          <>
+            <div className="alan genis">
+              <label className="secenekler">
+                <input type="checkbox" {...register('karaListe')} />
+                <span>Kara listede</span>
+              </label>
+            </div>
+            {karaListe && (
+              <Alan
+                etiket="Neden"
+                genis
+                hata={errors.karaListeNeden && errors.karaListeNeden.message}
+              >
+                <input type="text" maxLength={200} {...register('karaListeNeden')} />
+              </Alan>
+            )}
+          </>
+        )}
       </div>
       {genelHata && <div className="form-hata">{genelHata}</div>}
       <div className="form-alt">

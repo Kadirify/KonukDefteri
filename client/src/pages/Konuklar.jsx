@@ -6,6 +6,7 @@ import useUyruklar, { uyrukAdi } from '../hooks/useUyruklar';
 import Sayfa, { BosDurum, Yukleniyor } from '../components/Sayfa';
 import Uyari from '../components/Uyari';
 import Modal from '../components/Modal';
+import Rozet from '../components/Rozet';
 import KonukFormu from '../components/KonukFormu';
 import { trTarih } from '../utils/tarih';
 import { kimlikMetni, konukAdi } from '../utils/metin';
@@ -56,6 +57,17 @@ export default function Konuklar() {
                 <tr key={k.id} className="tiklanir" onClick={() => navigate(`/konuklar/${k.id}`)}>
                   <td>
                     <b>{konukAdi(k)}</b>
+                    {k.karaListe && (
+                      <>
+                        {' '}
+                        <Rozet tur="hata">kara liste</Rozet>
+                      </>
+                    )}
+                    {k.notlar && (
+                      <div className="soluk" style={{ fontSize: '0.8rem' }}>
+                        {k.notlar}
+                      </div>
+                    )}
                   </td>
                   <td className="mono">{kimlikMetni(k)}</td>
                   <td>{uyrukAdi(uyruklar, k.uyruk)}</td>

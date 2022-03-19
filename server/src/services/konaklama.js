@@ -23,14 +23,26 @@ function varsayilanCikis(tur, girisZamani, ayarlar) {
   return `${ertesi} ${ayarlar.cikis_saati || '11:00'}`;
 }
 
-async function konukIdBul(trx, eleman) {
+// Kara listedeki konuk yalnız yönetici "zorla" derse alınır
+function karaListeKontrol(k, zorla) {
+  if (!k || !k.kara_liste || zorla) return;
+  const neden = k.kara_liste_neden ? ': ' + k.kara_liste_neden : '';
+  throw new HttpHata(400, `${k.ad} ${k.soyad} kara listede${neden}`, {
+    karaListe: true,
+    konukId: k.id,
+  });
+}
+
+async function konukIdBul(trx, eleman, zorla) {
   if (eleman.konukId) {
     const k = await trx('konuklar').where({ id: eleman.konukId }).first();
     if (!k) throw new HttpHata(400, 'Konuk bulunamadı');
+    karaListeKontrol(k, zorla);
     return k.id;
   }
   const mevcut = await konuk.ayniKimlik(eleman.konuk, null, trx);
   if (mevcut) {
+    karaListeKontrol(mevcut, zorla);
     await konuk.guncelle(mevcut.id, eleman.konuk, trx);
     return mevcut.id;
   }
@@ -72,9 +84,14 @@ async function girisYap(req, b) {
   const grup = b.konuklar.length > 1 ? grupKodu() : null;
   const olusanlar = [];
 
+  const karaListedenAlinan = [];
   await db.transaction(async (trx) => {
     for (const eleman of b.konuklar) {
-      const konukId = await konukIdBul(trx, eleman);
+      const konukId = await konukIdBul(trx, eleman, zorla);
+      if (zorla) {
+        const k = await trx('konuklar').where({ id: konukId }).first();
+        if (k.kara_liste) karaListedenAlinan.push(`${k.ad} ${k.soyad}`);
+      }
       const zatenIcerde = await trx('konaklamalar')
         .join('odalar', 'odalar.id', 'konaklamalar.oda_id')
         .where({ konuk_id: konukId, 'konaklamalar.durum': 'konakliyor' })
@@ -129,6 +146,11 @@ async function girisYap(req, b) {
     tur,
     zorla,
   });
+  if (karaListedenAlinan.length) {
+    gunluk.kaydet(req, 'kara_liste_giris', 'konaklama:' + olusanlar.join(','), {
+      konuk: karaListedenAlinan.join(', '),
+    });
+  }
   kuyruk.tetikle();
   return olusanlar;
 }

@@ -6,6 +6,7 @@ import useUyruklar, { uyrukAdi } from '../hooks/useUyruklar';
 import Sayfa, { Yukleniyor } from '../components/Sayfa';
 import Uyari from '../components/Uyari';
 import Modal from '../components/Modal';
+import Rozet from '../components/Rozet';
 import KonukFormu from '../components/KonukFormu';
 import { trTarih } from '../utils/tarih';
 import { konukAdi } from '../utils/metin';
@@ -37,6 +38,11 @@ export default function KonukDetay() {
         </button>
       }
     >
+      {k.karaListe && (
+        <Uyari tur="hata">
+          Bu konuk kara listede{k.karaListeNeden ? ': ' + k.karaListeNeden : ''}.
+        </Uyari>
+      )}
       <div className="kart">
         <div className="detay-izgara">
           <div>
@@ -81,6 +87,10 @@ export default function KonukDetay() {
           <div>
             <span>Not</span>
             {k.notlar || '-'}
+          </div>
+          <div>
+            <span>Durum</span>
+            {k.karaListe ? <Rozet tur="hata">kara liste</Rozet> : 'Sorun yok'}
           </div>
         </div>
       </div>

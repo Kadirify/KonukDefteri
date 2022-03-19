@@ -25,6 +25,9 @@ const temelSema = {
   telefon: Joi.string().trim().max(30).allow(''),
   kvkkOnay: Joi.boolean().default(false),
   notlar: Joi.string().trim().max(300).allow(''),
+  // Girişte gönderilmez; gönderilmediyse kayıttaki değer korunur
+  karaListe: Joi.boolean(),
+  karaListeNeden: Joi.string().trim().max(200).allow(''),
 };
 
 // Yeni kayıtta TC zorunlu, düzenlemede boş bırakılırsa eskisi kalır
@@ -65,6 +68,8 @@ function dto(k, tamTc) {
     telefon: k.telefon || '',
     kvkkOnay: !!k.kvkk_onay,
     notlar: k.notlar || '',
+    karaListe: !!k.kara_liste,
+    karaListeNeden: k.kara_liste_neden || '',
     olusturma: k.olusturma,
     guncelleme: k.guncelleme || null,
   };
@@ -88,6 +93,10 @@ function satirHazirla(b, tcZorunlu) {
     notlar: b.notlar || '',
     guncelleme: simdi(),
   };
+  if (b.karaListe !== undefined) {
+    satir.kara_liste = !!b.karaListe;
+    satir.kara_liste_neden = b.karaListe ? b.karaListeNeden || '' : '';
+  }
   if (b.kimlikTuru === 'tc') {
     if (b.tc) {
       if (!tcknGecerli(b.tc)) {
