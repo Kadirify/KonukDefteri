@@ -53,6 +53,10 @@ const VARSAYILAN_AYARLAR = {
   kuyruk_dakika: '2',
   saklama_yil: '5',
   kvkk_metni: KVKK_METNI,
+  yedek_otomatik: '1',
+  yedek_saati: '03:00',
+  yedek_adet: '14',
+  yedek_klasoru: '',
 };
 
 async function ayarlar() {

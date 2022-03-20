@@ -9,6 +9,7 @@ import {
   kullanicilar as kullaniciApi,
   odalar as odaApi,
   tesis as tesisApi,
+  yedek as yedekApi,
 } from '../api';
 import { hataAlanlari, hataMesaji } from '../api/istemci';
 import { useAuth } from '../hooks/useAuth';
@@ -810,6 +811,195 @@ function Parola() {
   );
 }
 
+function boyutMetni(b) {
+  if (b >= 1024 * 1024) return (b / 1024 / 1024).toFixed(1) + ' MB';
+  return Math.max(1, Math.round(b / 1024)) + ' KB';
+}
+
+const YEDEK_TUR = { otomatik: 'otomatik', manuel: 'elle', guvenlik: 'geri yükleme öncesi' };
+
+function Yedekleme() {
+  const ayar = useYukle(() => ayarApi.oku(), []);
+  const liste = useYukle(() => yedekApi.liste(), []);
+  const [mesaj, setMesaj] = useState('');
+  const [genelHata, setGenelHata] = useState('');
+  const [mesgul, setMesgul] = useState(false);
+  const { register, handleSubmit, reset, setError, formState } = useForm();
+
+  useEffect(() => {
+    if (ayar.veri) {
+      reset({
+        yedek_otomatik: ayar.veri.yedek_otomatik === '1',
+        yedek_saati: ayar.veri.yedek_saati,
+        yedek_adet: ayar.veri.yedek_adet,
+        yedek_klasoru: ayar.veri.yedek_klasoru || '',
+      });
+    }
+  }, [ayar.veri, reset]);
+
+  const kaydet = async (v) => {
+    setMesaj('');
+    setGenelHata('');
+    try {
+      await ayarApi.kaydet({
+        yedek_otomatik: v.yedek_otomatik ? '1' : '0',
+        yedek_saati: v.yedek_saati,
+        yedek_adet: Number(v.yedek_adet),
+        yedek_klasoru: v.yedek_klasoru,
+      });
+      setMesaj('Kaydedildi. Zamanlama sunucu yeniden başlayınca geçerli olur.');
+      liste.yenile();
+    } catch (e) {
+      sunucuHatalari(e, setError, setGenelHata);
+    }
+  };
+
+  const islem = async (fn, basari) => {
+    setMesaj('');
+    setGenelHata('');
+    setMesgul(true);
+    try {
+      await fn();
+      setMesaj(basari);
+      liste.yenile();
+    } catch (e) {
+      setGenelHata(hataMesaji(e));
+    } finally {
+      setMesgul(false);
+    }
+  };
+
+  const geriYukle = (d) => {
+    const soru =
+      `${d.ad} geri yüklensin mi?\n\n` +
+      'Şu anki tüm kayıtlar bu yedektekilerle değiştirilir. ' +
+      'Önce mevcut durumun bir kopyası alınır.';
+    if (!window.confirm(soru)) return;
+    islem(() => yedekApi.geriYukle(d.ad), 'Yedek geri yüklendi.');
+  };
+
+  const sil = (d) => {
+    if (!window.confirm(`${d.ad} silinsin mi?`)) return;
+    islem(() => yedekApi.sil(d.ad), 'Yedek silindi.');
+  };
+
+  if ((ayar.yukleniyor && !ayar.veri) || (liste.yukleniyor && !liste.veri)) return <Yukleniyor />;
+  if (ayar.hata) return <Uyari tur="hata">{ayar.hata}</Uyari>;
+  const { errors, isSubmitting } = formState;
+  const dosyalar = liste.veri ? liste.veri.dosyalar : [];
+  const klasor = liste.veri ? liste.veri.klasor : '';
+
+  return (
+    <>
+      {mesaj && <Uyari tur="basari">{mesaj}</Uyari>}
+      {genelHata && <Uyari tur="hata">{genelHata}</Uyari>}
+      {liste.hata && <Uyari tur="hata">{liste.hata}</Uyari>}
+      <form onSubmit={handleSubmit(kaydet)}>
+        <div className="kart">
+          <div className="kart-baslik">
+            <h2>Otomatik yedek</h2>
+          </div>
+          <div className="izgara">
+            <div className="alan">
+              <label className="secenekler">
+                <input type="checkbox" {...register('yedek_otomatik')} />
+                <span>Her gün kendiliğinden yedek al</span>
+              </label>
+            </div>
+            <Alan etiket="Saat" hata={errors.yedek_saati && errors.yedek_saati.message}>
+              <input type="time" {...register('yedek_saati')} />
+            </Alan>
+            <Alan
+              etiket="Tutulacak yedek sayısı"
+              not="En yeniler kalır, eskileri silinir"
+              hata={errors.yedek_adet && errors.yedek_adet.message}
+            >
+              <input type="number" min={1} max={365} {...register('yedek_adet')} />
+            </Alan>
+            <Alan
+              etiket="Klasör"
+              genis
+              not="Boş bırakılırsa veri klasörünün altındaki yedek klasörü kullanılır"
+              hata={errors.yedek_klasoru && errors.yedek_klasoru.message}
+            >
+              <input type="text" placeholder={klasor} {...register('yedek_klasoru')} />
+            </Alan>
+          </div>
+          <div className="form-alt">
+            <button type="submit" className="dugme dugme-birincil" disabled={isSubmitting}>
+              Kaydet
+            </button>
+          </div>
+        </div>
+      </form>
+      <div className="kart">
+        <div className="kart-baslik">
+          <h2>Yedekler</h2>
+          <button
+            type="button"
+            className="dugme dugme-kucuk dugme-birincil"
+            disabled={mesgul}
+            onClick={() => islem(() => yedekApi.al(), 'Yedek alındı.')}
+          >
+            Şimdi yedek al
+          </button>
+        </div>
+        <p className="soluk" style={{ fontSize: '0.84rem' }}>
+          Klasör: <span className="mono">{klasor}</span>. Arada bir USB'ye de kopyalayın.
+        </p>
+        {dosyalar.length === 0 ? (
+          <p className="soluk">Yedek yok.</p>
+        ) : (
+          <div className="tablo-sarici" style={{ boxShadow: 'none' }}>
+            <table className="tablo">
+              <thead>
+                <tr>
+                  <th>Dosya</th>
+                  <th>Tür</th>
+                  <th>Boyut</th>
+                  <th>Zaman</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {dosyalar.map((d) => (
+                  <tr key={d.ad}>
+                    <td className="mono">{d.ad}</td>
+                    <td>{YEDEK_TUR[d.tur] || d.tur}</td>
+                    <td className="sayi">{boyutMetni(d.boyut)}</td>
+                    <td className="sayi">{trTarih(d.zaman)}</td>
+                    <td className="eylem">
+                      <a className="dugme dugme-kucuk" href={yedekApi.indirAdresi(d.ad)}>
+                        İndir
+                      </a>
+                      <button
+                        type="button"
+                        className="dugme dugme-kucuk"
+                        disabled={mesgul}
+                        onClick={() => geriYukle(d)}
+                      >
+                        Geri yükle
+                      </button>
+                      <button
+                        type="button"
+                        className="dugme dugme-kucuk dugme-sade"
+                        disabled={mesgul}
+                        onClick={() => sil(d)}
+                      >
+                        Sil
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 export default function Ayarlar() {
   const { kullanici } = useAuth();
   const yonetici = kullanici.rol === 'yonetici';
@@ -825,6 +1015,7 @@ export default function Ayarlar() {
             ]
           : []),
         ['genel', 'Genel'],
+        ...(yonetici ? [['yedek', 'Yedekleme']] : []),
         ['parola', 'Parola'],
       ];
   const ilk = gorevli ? 'parola' : 'tesis';
@@ -843,6 +1034,7 @@ export default function Ayarlar() {
         {yonetici && <Route path="katlar" element={<Katlar />} />}
         {yonetici && <Route path="kullanicilar" element={<Kullanicilar />} />}
         {!gorevli && <Route path="genel" element={<Genel />} />}
+        {yonetici && <Route path="yedek" element={<Yedekleme />} />}
         <Route path="parola" element={<Parola />} />
         <Route path="*" element={<Navigate to={ilk} replace />} />
       </Routes>

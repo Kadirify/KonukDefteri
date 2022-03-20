@@ -24,6 +24,10 @@ const sema = Joi.object({
   gunubirlik_izinli: acikKapali,
   gunubirlik_saat: Joi.number().integer().min(1).max(24),
   kvkk_metni: Joi.string().max(4000).allow(''),
+  yedek_otomatik: acikKapali,
+  yedek_saati: saat,
+  yedek_adet: Joi.number().integer().min(1).max(365),
+  yedek_klasoru: Joi.string().trim().max(300).allow(''),
 });
 
 router.get(

@@ -38,11 +38,15 @@ KBS web servisi yalnızca tesisin bildirdiği IP'den gelen isteği kabul eder. �
 
 ## Yedekleme
 
-Veritabanı tek dosya: `server/data/konukdefteri.sqlite`. Program kapalıyken kopyalamak yeterli. Harici diske ya da başka bilgisayara düzenli kopyalayın; `.env` dosyasını da yedekleyin, içindeki `SIFRE_ANAHTARI` olmadan TC numaraları çözülemez.
+Program her gece Ayarlar > Yedekleme'deki saatte (varsayılan 03:00) veritabanının kopyasını `server/data/yedek/` altına yazar ve en yeni 14 tanesini tutar.  "Şimdi yedek al" ile elle de alınır, "İndir" ile tarayıcıdan çekilir.
+
+Geri yükleme aynı ekrandan: önce mevcut durumun bir kopyası alınır, sonra yedekteki kayıtlar yüklenir. Yedek başka bir program sürümünden geliyorsa (tablolar farklıysa) reddedilir; önce o sürümle açıp güncelleyin.
+
+`.env` dosyasını da yedekleyin: içindeki `SIFRE_ANAHTARI` olmadan TC numaraları çözülemez, yedek dosyası da işe yaramaz.
 
 ## Sorun giderme
 
 - Açılışta ".env dosyasında eksik ya da hatalı ayar" diyorsa `npm run anahtar` çıktısı `.env` içine yapıştırılmamıştır.
 - "Sunucuya ulaşılamıyor" çıkıyorsa API kapalıdır; `npm start` penceresine ya da `server/data/log/sunucu.log` son satırlarına bakın.
 - Giriş ekranı 10 dakika bekleyin diyorsa aynı adresten 10 hatalı deneme yapılmıştır, beklemek gerekiyor.
-- KBS "Servise ulaşılamadı" diyorsa internet, WSDL adresi ve sabit IP kontrol edilir; Ayarlar > Tesis ve KBS > Bağlantı testi.
+- KBS "Servise ulaşılamadı" diyorsa internet, WSDL adresi ve sabit IP kontrol edilir; Ayarlar > KBS bağlantısı > Bağlantı testi.

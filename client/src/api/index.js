@@ -66,6 +66,14 @@ export const hesaplar = {
   ac: (id) => istemci.post(`/hesaplar/${id}/ac`).then(veri),
 };
 
+export const yedek = {
+  liste: () => istemci.get('/yedek').then(veri),
+  al: () => istemci.post('/yedek').then(veri),
+  sil: (ad) => istemci.delete(`/yedek/${ad}`).then(veri),
+  geriYukle: (ad) => istemci.post(`/yedek/${ad}/geri-yukle`, { onay: true }).then(veri),
+  indirAdresi: (ad) => `/api/yedek/${ad}/indir`,
+};
+
 export const cizelge = {
   oku: (gun, gorunum) => istemci.get('/cizelge', { params: { gun, gorunum } }).then(veri),
 };
