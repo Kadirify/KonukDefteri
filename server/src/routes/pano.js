@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../db/knex');
 const tesis = require('../services/tesis');
+const yedek = require('../services/yedek');
 const { sar } = require('../utils/async');
 const { bugun, simdi } = require('../utils/tarih');
 
@@ -76,6 +77,7 @@ router.get(
       const ta = await db('tahsilatlar').where({ hesap_id: h.id }).sum('tutar as t').first();
       acikBorc += Number(k.t || 0) - Number(ta.t || 0);
     }
+    const sonYedek = req.kullanici.rol === 'yonetici' ? await yedek.son() : '';
     const say = {};
     bildirimler.forEach((b) => {
       say[b.durum] = Number(b.n);
@@ -103,6 +105,7 @@ router.get(
       kbsMod: t.kbs_mod || 'manuel',
       bugunTahsilat: Math.round(Number(bugunTahsilat.t || 0) * 100) / 100,
       acikBorc: Math.round(acikBorc * 100) / 100,
+      sonYedek,
       bugunGelecek: gelecek.map((r) => ({
         id: r.id,
         adSoyad: r.ad_soyad || '',

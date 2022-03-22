@@ -1,19 +1,22 @@
 import { Link } from 'react-router-dom';
 import { pano } from '../api';
 import useYukle from '../hooks/useYukle';
+import { useAuth } from '../hooks/useAuth';
 import Sayfa, { Yukleniyor } from '../components/Sayfa';
 import Uyari from '../components/Uyari';
-import { trGun, trTarih } from '../utils/tarih';
+import { kacGun, trGun, trTarih } from '../utils/tarih';
 import { islemMetni, KBS_MOD, REZ_KAYNAK } from '../utils/metin';
 import { tl } from '../utils/para';
 
 export default function Pano() {
+  const { kullanici } = useAuth();
   const { veri, yukleniyor, hata } = useYukle(() => pano.oku(), []);
 
   if (yukleniyor) return <Yukleniyor />;
   if (hata) return <Uyari tur="hata">{hata}</Uyari>;
 
   const p = veri;
+  const yedekEski = kullanici.rol === 'yonetici' && (!p.sonYedek || kacGun(p.sonYedek) >= 2);
   return (
     <Sayfa
       baslik="Pano"
@@ -105,6 +108,19 @@ export default function Pano() {
           <b style={{ fontSize: '1.2rem' }}>{tl(p.acikBorc)}</b>
         </div>
       </div>
+
+      {yedekEski && (
+        <Uyari
+          tur="bilgi"
+          eylem={
+            <Link to="/ayarlar/yedek" className="dugme dugme-kucuk">
+              Yedekleme
+            </Link>
+          }
+        >
+          {p.sonYedek ? `Son yedek ${kacGun(p.sonYedek)} gün önce.` : 'Hiç yedek alınmamış.'}
+        </Uyari>
+      )}
 
       {p.hatali > 0 && (
         <Uyari
