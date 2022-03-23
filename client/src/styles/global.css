@@ -1323,6 +1323,17 @@ textarea:focus {
   }
 }
 
+/* işlem günlüğü */
+
+.sayfalama {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 14px;
+  font-size: 0.84rem;
+}
+
 /* kayıt formu */
 
 .kvkk-metin {

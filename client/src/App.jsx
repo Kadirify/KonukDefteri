@@ -15,6 +15,7 @@ import KonukDetay from './pages/KonukDetay';
 import KbsKuyrugu from './pages/KbsKuyrugu';
 import KesintiTutanagi from './pages/KesintiTutanagi';
 import Raporlar from './pages/Raporlar';
+import Gunluk from './pages/Gunluk';
 import Ayarlar from './pages/Ayarlar';
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="kbs" element={<KbsKuyrugu />} />
         <Route path="kbs/kesintiler/:id" element={<KesintiTutanagi />} />
         <Route path="raporlar" element={<Raporlar />} />
+        <Route path="gunluk" element={<Gunluk />} />
         <Route path="ayarlar/*" element={<Ayarlar />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

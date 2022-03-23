@@ -66,6 +66,10 @@ export const hesaplar = {
   ac: (id) => istemci.post(`/hesaplar/${id}/ac`).then(veri),
 };
 
+export const gunluk = {
+  liste: (params) => istemci.get('/gunluk', { params }).then(veri),
+};
+
 export const yedek = {
   liste: () => istemci.get('/yedek').then(veri),
   al: () => istemci.post('/yedek').then(veri),

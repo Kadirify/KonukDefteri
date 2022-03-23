@@ -16,6 +16,7 @@ const menu = [
   { yol: '/konuklar', ad: 'Konuklar' },
   { yol: '/kbs', ad: 'KBS kuyruğu', sayac: true },
   { yol: '/raporlar', ad: 'Raporlar' },
+  { yol: '/gunluk', ad: 'İşlem günlüğü', yonetici: true },
   { yol: '/ayarlar', ad: 'Ayarlar', gorevli: true },
 ];
 
@@ -76,6 +77,7 @@ export default function Duzen({ children }) {
         <nav>
           {menu
             .filter((m) => !gorevli || m.gorevli)
+            .filter((m) => !m.yonetici || kullanici.rol === 'yonetici')
             .map((m) => (
               <NavLink
                 key={m.yol}

@@ -167,6 +167,12 @@ export default function Pano() {
             <h2>Son işlemler</h2>
             <span className="soluk">
               KBS: {KBS_MOD[p.kbsMod] || p.kbsMod}
+              {kullanici.rol === 'yonetici' && (
+                <>
+                  {' - '}
+                  <Link to="/gunluk">tümü</Link>
+                </>
+              )}
             </span>
           </div>
           {p.sonIslemler.length === 0 ? (

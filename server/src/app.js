@@ -49,6 +49,7 @@ app.use('/api/hesaplar', require('./routes/hesaplar'));
 app.use('/api/kullanicilar', require('./routes/kullanicilar'));
 app.use('/api/ayarlar', require('./routes/ayarlar'));
 app.use('/api/yedek', require('./routes/yedek'));
+app.use('/api/gunluk', require('./routes/gunluk'));
 app.use('/api/uyruklar', require('./routes/uyruklar'));
 app.use('/api/odalar', require('./routes/odalar'));
 app.use('/api/konuklar', require('./routes/konuklar'));
