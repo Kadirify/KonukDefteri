@@ -1,6 +1,6 @@
 {
   "name": "konukdefteri",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Pansiyon, apart ve günübirlik kiralık evler için konaklayan kimlik bildirimi (KBS) uygulaması",
   "author": "Kadir",

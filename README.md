@@ -104,3 +104,7 @@ client/   Vite 2, React 17, react-router 6, react-hook-form, axios. UI kiti yok,
 - Booking ve Airbnb bağlantısı yok, rezervasyonlar elle girilir.
 - Saklama süresi dolan kayıtların silinmesi elle.
 - Tek tesis.
+
+## Sürüm notları
+
+- 1.0 (Mart 2022): konuk kartı, giriş çıkış, KBS kuyruğu ve Jandarma web servisi, kesinti tutanağı, oda haritası, temizlik, rezervasyon, zaman çizelgesi, hesap ve tahsilat, kayıt formu, kara liste, yedekleme, işlem günlüğü.
