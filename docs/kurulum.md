@@ -38,7 +38,7 @@ KBS web servisi yalnızca tesisin bildirdiği IP'den gelen isteği kabul eder. �
 
 ## Yedekleme
 
-Program her gece Ayarlar > Yedekleme'deki saatte (varsayılan 03:00) veritabanının kopyasını `server/data/yedek/` altına yazar ve en yeni 14 tanesini tutar.  "Şimdi yedek al" ile elle de alınır, "İndir" ile tarayıcıdan çekilir.
+Program her gece Ayarlar > Yedekleme'deki saatte (varsayılan 03:00) veritabanının kopyasını `server/data/yedek/` altına yazar ve en yeni 14 tanesini tutar. Klasörü harici diske ya da ağ paylaşımına çevirmek en sağlıklısı; aynı diskteki yedek disk bozulunca onunla gider. "Şimdi yedek al" ile elle de alınır, "İndir" ile tarayıcıdan çekilir.
 
 Geri yükleme aynı ekrandan: önce mevcut durumun bir kopyası alınır, sonra yedekteki kayıtlar yüklenir. Yedek başka bir program sürümünden geliyorsa (tablolar farklıysa) reddedilir; önce o sürümle açıp güncelleyin.
 
