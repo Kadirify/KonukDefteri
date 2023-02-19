@@ -1,8 +1,12 @@
+const https = require('https');
 const soap = require('soap');
 
 // Jandarma KBS Tesis web servisi. Metot adları "KBS Tesis 2 Web Servis Tanım
 // Dokümanı"ndan; istek alan adları karakoldan gelen dokümanla karşılaştırılacak.
 // Geliştirmede server/mock/kbs-sunucu.js aynı adlarla cevap veriyor.
+
+// Şubat 2023: sunucu TLS 1.3 el sıkışmasında bağlantıyı kesmeye başladı, 1.2'ye sabitlendi
+const ajan = new https.Agent({ minVersion: 'TLSv1.2', maxVersion: 'TLSv1.2', keepAlive: true });
 
 let istemci = null;
 let istemciWsdl = '';
@@ -16,7 +20,7 @@ const metotlar = {
 async function istemciAl(wsdl) {
   if (!istemci || istemciWsdl !== wsdl) {
     istemci = await soap.createClientAsync(wsdl, {
-      wsdl_options: { timeout: 10000 },
+      wsdl_options: { timeout: 10000, httpsAgent: ajan },
     });
     istemciWsdl = wsdl;
   }
@@ -71,7 +75,7 @@ async function gonder(baglanti, alanlar) {
   }
   let sonuc;
   try {
-    [sonuc] = await c[metot + 'Async'](istekHazirla(baglanti, alanlar));
+    [sonuc] = await c[metot + 'Async'](istekHazirla(baglanti, alanlar), { httpsAgent: ajan });
   } catch (e) {
     sifirla(); // bağlantı koptuysa bir sonraki denemede yeniden kurulsun
     throw new Error('Servise ulaşılamadı: ' + (e.message || e));

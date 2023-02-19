@@ -86,14 +86,14 @@ Geliştirirken gerçek servise gerek yok: `npm run mock:kbs` aynı metot adları
 
 ```
 server/   Express 4, knex + sqlite3, joi, jsonwebtoken (httpOnly cookie), winston, node-cron, soap
-client/   Vite 2, React 17, react-router 6, react-hook-form, axios. UI kiti yok, CSS elle yazıldı.
+client/   Vite 3, React 18, react-router 6, react-hook-form, axios. UI kiti yok, CSS elle yazıldı.
 ```
 
 - Tek SQLite dosyası; migration'lar açılışta kendiliğinden çalışır. SQLite tek bağlantıyla çalışıyor: transaction içinde ikinci bir `db(...)` çağrısı kilitleniyor, `trx` geçirmek şart. Bunu öğrenene kadar epey uğraştım.
 - Oda durumu üç ayrı eksen: doluluk konaklamalardan hesaplanır, temizlik ve kullanılabilirlik (bakımda, kapalı) odada tutulur. Oda değişimleri `konaklama_odalari` tablosunda segment olarak saklanır, çizelge oradan okur.
 - KBS sürücüleri `server/src/services/kbs/` altında: `manuel.js` ve `jandarma.js` (SOAP). Emniyet için bir gün servis açılırsa aynı `gonder` / `test` arayüzüyle eklenir.
 - Testler jest + supertest, her test dosyası kendi geçici veritabanıyla açılır: `npm test`.
-- Geliştirme: `npm run dev` ile API (3001) ve Vite (3000) birlikte, `/api` proxy ile.
+- Geliştirme: `npm run dev` ile API (3001) ve Vite (5173) birlikte, `/api` proxy ile.
 
 ## Eksikler
 
@@ -108,3 +108,4 @@ client/   Vite 2, React 17, react-router 6, react-hook-form, axios. UI kiti yok,
 ## Sürüm notları
 
 - 1.0 (Mart 2022): konuk kartı, giriş çıkış, KBS kuyruğu ve Jandarma web servisi, kesinti tutanağı, oda haritası, temizlik, rezervasyon, zaman çizelgesi, hesap ve tahsilat, kayıt formu, kara liste, yedekleme, işlem günlüğü.
+- Şubat 2023: bağımlılıklar güncellendi (React 18, Vite 3, knex 2). Jandarma sunucusu TLS 1.3 el sıkışmasında bağlantıyı kesmeye başladığı için istemci TLS 1.2'ye sabitlendi.

@@ -19,7 +19,8 @@ function yerelAdresler() {
   const liste = [];
   Object.values(os.networkInterfaces()).forEach((arayuz) => {
     (arayuz || []).forEach((a) => {
-      if (a.family === 'IPv4' && !a.internal) liste.push(a.address);
+      // Node 18.0'da family bir ara sayı oldu, ikisini de kabul et
+      if ((a.family === 'IPv4' || a.family === 4) && !a.internal) liste.push(a.address);
     });
   });
   return liste;

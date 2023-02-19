@@ -20,10 +20,10 @@
     "test": "npm --prefix server test"
   },
   "devDependencies": {
-    "concurrently": "^7.0.0",
-    "eslint": "^8.6.0",
-    "eslint-plugin-react": "^7.28.0",
-    "eslint-plugin-react-hooks": "^4.3.0",
-    "prettier": "^2.5.1"
+    "concurrently": "^7.3.0",
+    "eslint": "^8.23.0",
+    "eslint-plugin-react": "^7.31.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^2.7.1"
   }
 }
