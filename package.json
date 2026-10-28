@@ -4,7 +4,7 @@
   "private": true,
   "description": "Pansiyon, apart ve günübirlik kiralık evler için konaklayan kimlik bildirimi (KBS) uygulaması",
   "author": "Kadir",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "engines": {
     "node": ">=16"
   },

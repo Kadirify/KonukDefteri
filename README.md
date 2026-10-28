@@ -1,5 +1,7 @@
 # KonukDefteri
 
+2022'de küçük bir pansiyon için yazmıştım; o günden beri resepsiyonda çalışıyor, tıkır tıkır ilerliyor 😅 Uzun süre özel depoda bekledi, belki birine faydası dokunur diye açıyorum. MIT lisansıyla paylaşıyorum: alıp kullanabilir, değiştirebilir, ticari olarak satabilirsiniz. Kodlar tamamen bana ait.
+
 ![Pano](docs/ekran-goruntuleri/01-pano.png)
 
 Türkiye'de konaklayan herkesin kimliğini aynı gün kolluğa bildirmek zorunlu (1774 sayılı Kimlik Bildirme Kanunu). Büyük oteller bunu otel programıyla yapıyor; küçük pansiyonda iş, resepsiyondaki deftere yazıp akşam KBS sayfasına tek tek girmek. Unutulan konuk, yanlış yazılan TC, sistem çöktüğünde ne yapılacağının bilinmemesi... Bu program o defterin yerine geçsin diye yazıldı. Konuk kartı bir kere açılır, giriş çıkış kaydedilir, bildirim kendiliğinden kuyruğa düşer ve gider. KBS'ye ulaşılamıyorsa bildirim bekler, servis açılınca sırayla gönderilir.
@@ -109,3 +111,7 @@ client/   Vite 3, React 18, react-router 6, react-hook-form, axios. UI kiti yok,
 
 - 1.0 (Mart 2022): konuk kartı, giriş çıkış, KBS kuyruğu ve Jandarma web servisi, kesinti tutanağı, oda haritası, temizlik, rezervasyon, zaman çizelgesi, hesap ve tahsilat, kayıt formu, kara liste, yedekleme, işlem günlüğü.
 - Şubat 2023: bağımlılıklar güncellendi (React 18, Vite 3, knex 2). Jandarma sunucusu TLS 1.3 el sıkışmasında bağlantıyı kesmeye başladığı için istemci TLS 1.2'ye sabitlendi.
+
+## Lisans
+
+MIT. Ticari kullanım ve satış serbest; ayrıntı [LICENSE](LICENSE) dosyasında.
